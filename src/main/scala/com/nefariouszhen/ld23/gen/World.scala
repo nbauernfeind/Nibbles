@@ -56,7 +56,7 @@ class World(val size: Int = 8) {
   private[this] val rand = new Random()
   private[this] val m = Array.ofDim[Tile](dimension, dimension)
 
-  def getTile(x: Int, y: Int): Tile = if (!checkDimensions(Point(x, y))) Tile.UNKNOWN else m(x)(y)
+  def getTile(p: Point): Tile = if (!checkDimensions(p)) Tile.UNKNOWN else m(p.x)(p.y)
 
   generate()
 
@@ -65,7 +65,8 @@ class World(val size: Int = 8) {
     val (w, h) = ((screen.w + 15) >> 4, (screen.h + 15) >> 4)
     screen.offset = Point(xScroll, yScroll)
     for (y <- yo to h + yo; x <- xo to w + xo) {
-      getTile(x, y).render(screen, this, x, y)
+      val p = Point(x,y)
+      getTile(p).render(screen, this, p)
     }
     screen.offset = Point(0,0)
   }
@@ -106,7 +107,6 @@ class World(val size: Int = 8) {
       setToWallIfEmpty(Point(i, by))
       setToWallIfEmpty(Point(i, ty))
     }
-    println("Created room: " + c + " " + (w,h))
 
     var dirs = Direction.values
     var buildCorridor = true
