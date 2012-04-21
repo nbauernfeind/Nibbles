@@ -1,7 +1,9 @@
 package com.nefariouszhen.ld23.gen
 
+import tile.Tile
 import util.Random
 import collection.mutable.HashMap
+import com.nefariouszhen.ld23.graphics.Screen
 
 sealed trait Direction
 object Direction {
@@ -14,23 +16,15 @@ object Direction {
   def nextDir(r: Random): Direction = values(r.nextInt(values.size))
 }
 
-sealed trait Tile
-object Tile {
-  case object EMPTY extends Tile
-  case object WALL extends Tile
-  case object FLOOR extends Tile
-  case object UNKNOWN extends Tile
-}
-
-case class Pos(x: Int, y: Int) {
-  def move(d: Direction): Pos = d match {
-    case Direction.NORTH => Pos(x, y + 1)
-    case Direction.SOUTH => Pos(x, y - 1)
-    case Direction.EAST => Pos(x - 1, y)
-    case Direction.WEST => Pos(x + 1, y)
+case class Point(x: Int, y: Int) {
+  def move(d: Direction): Point = d match {
+    case Direction.NORTH => Point(x, y + 1)
+    case Direction.SOUTH => Point(x, y - 1)
+    case Direction.EAST => Point(x - 1, y)
+    case Direction.WEST => Point(x + 1, y)
   }
 
-  def directionTo(p: Pos): Direction = {
+  def directionTo(p: Point): Direction = {
     if (p.x > x) {
       Direction.WEST
     } else if (p.x < x) {
@@ -50,8 +44,8 @@ case class Room(bx: Int, by: Int, tx: Int, ty: Int) {
     dx + dy
   }
 
-  def randPoint(rand: Random): Pos = {
-    Pos(rand.nextInt(tx - bx - 1) + bx + 1, rand.nextInt(ty - by - 1) + by + 1)
+  def randPoint(rand: Random): Point = {
+    Point(rand.nextInt(tx - bx - 1) + bx + 1, rand.nextInt(ty - by - 1) + by + 1)
   }
 }
 
@@ -62,10 +56,20 @@ class World(val size: Int = 5) {
   private[this] val rand = new Random()
   private[this] val m = Array.ofDim[Tile](dimension, dimension)
 
-  def getTile(x: Int, y: Int): Tile = if (!checkDimensions(Pos(x, y))) Tile.UNKNOWN else Tile.FLOOR
-//  def getTile(x: Int, y: Int): Tile = if (!checkDimensions(Pos(x, y))) Tile.UNKNOWN else m(x)(y)
+
+  def getTile(x: Int, y: Int): Tile = if (!checkDimensions(Point(x, y))) Tile.UNKNOWN else Tile.FLOOR
+  //  def getTile(x: Int, y: Int): Tile = if (!checkDimensions(Point(x, y))) Tile.UNKNOWN else m(x)(y)
 
   generate()
+
+  def renderBackground(screen: Screen, xScroll: Int, yScroll: Int) {
+    val (xo, yo) = (xScroll >> 4, yScroll >> 4)
+    val (w, h) = ((screen.w + 15) >> 4, (screen.h + 15) >> 4)
+    screen.offset = Point(xScroll, yScroll)
+    for (y <- yo to h + yo; x <- xo to w + xo) {
+      getTile(x, y).render(screen, this, x, y)
+    }
+  }
 
   def generate() {
     for (i <- 0 until dimension; j <- 0 until dimension) {
@@ -80,20 +84,20 @@ class World(val size: Int = 5) {
 
     var nr = rooms.tail
 
-//    while (nr.length > 0) {
-//      val nextRoom = nr.sortBy(dist(_)).head
-//      nr = nr.filter(_ != nextRoom)
-//      val d = dist.remove(nextRoom).get
-//      nr.foreach(r => dist.put(r, math.min(dist(r), nextRoom.dist(r))))
-//
-//      val valid = rooms.filter(r => !nr.contains(r) && r.dist(nextRoom) <= d).head
-//      val (a, b) = (valid.randPoint(rand), nextRoom.randPoint(rand))
-//      createCorridor(a, b.copy(y = a.y))
-//      createCorridor(a.copy(x = b.x), b)
-//    }
+    //    while (nr.length > 0) {
+    //      val nextRoom = nr.sortBy(dist(_)).head
+    //      nr = nr.filter(_ != nextRoom)
+    //      val d = dist.remove(nextRoom).get
+    //      nr.foreach(r => dist.put(r, math.min(dist(r), nextRoom.dist(r))))
+    //
+    //      val valid = rooms.filter(r => !nr.contains(r) && r.dist(nextRoom) <= d).head
+    //      val (a, b) = (valid.randPoint(rand), nextRoom.randPoint(rand))
+    //      createCorridor(a, b.copy(y = a.y))
+    //      createCorridor(a.copy(x = b.x), b)
+    //    }
   }
 
-  private[this] def createCorridor(a: Pos, b: Pos) {
+  private[this] def createCorridor(a: Point, b: Point) {
     val d = a.directionTo(b)
     var p = a
     while (p != b) {
@@ -113,7 +117,7 @@ class World(val size: Int = 5) {
     val (bx, by) = (x - w / 2, y - h / 2)
     val (tx, ty) = (bx + w, by + h)
 
-    if (!checkDimensions(Pos(bx, by)) || !checkDimensions(Pos(tx, ty))) {
+    if (!checkDimensions(Point(bx, by)) || !checkDimensions(Point(tx, ty))) {
       return None
     }
 
@@ -126,23 +130,23 @@ class World(val size: Int = 5) {
     }
 
     for (j <- by to ty) {
-      setToWallIfEmpty(Pos(bx, j))
-      setToWallIfEmpty(Pos(tx, j))
+      setToWallIfEmpty(Point(bx, j))
+      setToWallIfEmpty(Point(tx, j))
     }
 
     for (i <- bx to tx) {
-      setToWallIfEmpty(Pos(i, by))
-      setToWallIfEmpty(Pos(i, ty))
+      setToWallIfEmpty(Point(i, by))
+      setToWallIfEmpty(Point(i, ty))
     }
 
     Some(Room(bx, by, tx, ty))
   }
 
-  private[this] def setToWallIfEmpty(p: Pos) {
+  private[this] def setToWallIfEmpty(p: Point) {
     if (checkDimensions(p) && m(p.x)(p.y) == Tile.EMPTY) {
       m(p.x)(p.y) = Tile.WALL
     }
   }
 
-  private[this] def checkDimensions(p: Pos): Boolean = (p.x >= 0 && p.x < dimension && p.y >= 0 && p.y < dimension)
+  private[this] def checkDimensions(p: Point): Boolean = (p.x >= 0 && p.x < dimension && p.y >= 0 && p.y < dimension)
 }

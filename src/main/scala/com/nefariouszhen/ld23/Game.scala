@@ -1,10 +1,12 @@
 package com.nefariouszhen.ld23
 
-import gen.{Tile, World}
+import gen.World
+import graphics.{SpriteSheet, Screen}
 import sound.SoundLoop
 import java.awt.image.{DataBufferInt, BufferedImage}
 import javax.swing.JFrame
 import java.awt.{BorderLayout, Dimension, Canvas}
+import javax.imageio.ImageIO
 
 object Game {
   val WIDTH = 320
@@ -42,6 +44,7 @@ class Game extends Canvas with Runnable {
   private[this] val input = new InputHandler(this)
 
   private[this] val world = new World()
+  private[this] val screen = new Screen(WIDTH, HEIGHT, new SpriteSheet(loadImgResource("/tiles.png")))
 
   def start() {
     running = true
@@ -124,23 +127,30 @@ class Game extends Canvas with Runnable {
     val g = bs.getDrawGraphics
 
     // Update Image
-    val (cw,ch) = ((WIDTH - world.dimension)/2,(HEIGHT - world.dimension)/2)
-    for (x <- 0 until WIDTH; y <- 0 until HEIGHT) {
-      pixels(x + y * WIDTH) = world.getTile(x-cw,y-ch) match {
-        case Tile.EMPTY => 0x0000FF
-        case Tile.WALL => 0x00FF00
-        case Tile.FLOOR => 0xFF0000
-        case Tile.UNKNOWN => 0x000000
-      }
+//    val (cw,ch) = ((WIDTH - world.dimension)/2,(HEIGHT - world.dimension)/2)
+//    for (x <- 0 until WIDTH; y <- 0 until HEIGHT) {
+//      pixels(x + y * WIDTH) = world.getTile(x-cw,y-ch) match {
+//        case Tile.EMPTY => 0x0000FF
+//        case Tile.WALL => 0x00FF00
+//        case Tile.FLOOR => 0xFF0000
+//        case Tile.UNKNOWN => 0x000000
+//      }
+//    }
+    world.renderBackground(screen, xa, ya)
+
+    for (y <- 0 until screen.h; x <- 0 until screen.w) {
+      pixels(x + y * WIDTH) = screen.pixels(x + y * screen.w)
     }
 
     // Display Image
     g.fillRect(0, 0, getWidth, getHeight)
 
     val (ww,hh) = (getWidth * SCALE, getHeight * SCALE)
-    g.drawImage(image, (getWidth - ww)/2-xa, (getHeight - hh)/2-ya, ww, hh, null)
+    g.drawImage(image, (getWidth - ww)/2, (getHeight - hh)/2, ww, hh, null)
 
     g.dispose()
     bs.show()
   }
+
+  def loadImgResource(name: String) = ImageIO.read(this.getClass.getResourceAsStream(name))
 }
