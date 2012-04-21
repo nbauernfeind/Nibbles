@@ -97,14 +97,70 @@ class World(val size: Int = 5) {
     //    }
   }
 
-  private[this] def createCorridor(a: Point, b: Point) {
-    val d = a.directionTo(b)
-    var p = a
-    while (p != b) {
-      checkDimensions(p)
-      m(p.x)(p.y) = Tile.FLOOR
-      Direction.values.map(p.move _).foreach(setToWallIfEmpty _)
-      p = p.move(d)
+  private[this] def createRoom(c: Point, attempts: Int) {
+    if (attempts <= 0) {
+      return
+    }
+
+    // Generate room with borders on lines bx,by,tx,ty
+    val (w, h) = (nextInt(minRS, maxRS), nextInt(minRS, maxRS))
+    val (bx, by) = (c.x - w / 2, c.y - h / 2)
+    val (tx, ty) = (bx + w, by + h)
+
+    if (!checkDimensions(Point(bx, by)) || !checkDimensions(Point(tx, ty))) {
+      return
+    }
+
+    for (i <- bx + 1 until tx; j <- by + 1 until ty) {
+      m(i)(j) = Tile.FLOOR
+    }
+
+    for (j <- by to ty) {
+      setToWallIfEmpty(Point(bx, j))
+      setToWallIfEmpty(Point(tx, j))
+    }
+
+    for (i <- bx to tx) {
+      setToWallIfEmpty(Point(i, by))
+      setToWallIfEmpty(Point(i, ty))
+    }
+
+    var dirs = Direction.values
+    var done = false
+
+    while (!done) {
+      var d = dirs(rand.nextInt(dirs.size))
+      dirs = dirs.filter(_ == d)
+
+      var p = d match {
+        case Direction.NORTH => Point(nextInt(bx + 1, tx - 1), ty)
+        case Direction.SOUTH => Point(nextInt(bx + 1, tx - 1), by)
+        case Direction.EAST => Point(bx, nextInt(by + 1, ty - 1))
+        case Direction.WEST => Point(tx, nextInt(by + 1, ty - 1))
+      }
+
+      val s = buildCorridor(p, d)
+      createRoom(s, attempts - 1)
+
+      done = rand.nextInt(100) > 10
+    }
+  }
+
+  private[this] def buildCorridor(s: Point, d: Direction): Point = {
+    val len = nextInt(minCL, maxCL)
+
+    var p = s
+    for (l <- 0 until len) {
+      if (checkDimensions(p)) {
+        m(p.x)(p.y) = Tile.FLOOR
+        Direction.values.map(p.move _).filter(_ != p).foreach(setToWallIfEmpty _)
+        p = p.move(d)
+      }
+    }
+
+    rand.nextInt(100) match {
+      case i: Int if i < 50 => p
+      case _ => buildCorridor(p, Direction.values.filter(_ != d)(rand.nextInt(Direction.values.size - 1)))
     }
   }
 
