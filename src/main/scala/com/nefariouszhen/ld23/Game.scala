@@ -1,6 +1,6 @@
 package com.nefariouszhen.ld23
 
-import gen.World
+import gen.{Tile, World}
 import java.awt.Canvas
 import sound.SoundLoop
 import java.awt.image.{DataBufferInt, BufferedImage}
@@ -87,8 +87,15 @@ class Game extends Canvas with Runnable {
     val g = bs.getDrawGraphics
 
     // Update Image
-    for (x <- 0 until WIDTH; y <- 0 until HEIGHT)
-      pixels(x + y * WIDTH) = ((HEIGHT-y).toDouble / HEIGHT * 0xFF).toInt
+    val (cw,ch) = ((WIDTH - world.dimension)/2,(HEIGHT - world.dimension)/2)
+    for (x <- 0 until WIDTH; y <- 0 until HEIGHT) {
+//      pixels(x + y * WIDTH) = ((HEIGHT-y).toDouble / HEIGHT * 0xFF).toInt
+      pixels(x + y * WIDTH) = world.getTile(x-cw,y-ch) match {
+        case Tile.EMPTY => 0x0000FF
+        case Tile.WALL => 0x00FF00
+        case Tile.FLOOR => 0xFF0000
+      }
+    }
 
     // Display Image
     g.fillRect(0, 0, getWidth, getHeight)

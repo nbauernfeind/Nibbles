@@ -20,16 +20,17 @@ object Tile {
   case object FLOOR extends Tile
 }
 
-class World(val size: Int = 10) {
+class World(val size: Int = 6) {
   val dimension = 1 << size
-  val center = dimension >> 1
-  val rand = new Random()
-  val m = Array.ofDim[Tile](dimension, dimension)
+  private[this] val rand = new Random()
+  private[this] val m = Array.ofDim[Tile](dimension, dimension)
 
   for (i <- 0 until dimension; j <- 0 until dimension) {
     m(i)(j) = Tile.EMPTY
   }
-  createRoom(center, center, 4, 6, 20, 22, Direction.SOUTH, 20)
+  createRoom(dimension >> 1, dimension >> 1, 4, 6, 20, 22, Direction.SOUTH, 20)
+
+  def getTile(x: Int, y: Int): Tile = if (!checkDimensions(x, y)) Tile.EMPTY else m(x)(y)
 
   private[this] def nextInt(min: Int, max: Int): Int = rand.nextInt(max - min) + min
 
