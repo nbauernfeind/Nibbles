@@ -34,6 +34,7 @@ object Game {
 }
 
 class Game extends Canvas with Runnable {
+
   import Game._
 
   private[this] var running = false
@@ -58,8 +59,8 @@ class Game extends Canvas with Runnable {
   }
 
   def run() {
-//    val snd = new SoundLoop("/ld_bg_loop.wav")
-//    snd.startPlaying()
+    //    val snd = new SoundLoop("/ld_bg_loop.wav")
+    //    snd.startPlaying()
     var lastTime = System.nanoTime()
     var lastTimer = System.currentTimeMillis()
     var unprocessed = 0.0d
@@ -102,7 +103,7 @@ class Game extends Canvas with Runnable {
     requestFocus()
   }
 
-  var (xa, ya) = (0, 0)
+  var (xa, ya) = (world.dimension * 8 - screen.w/2, world.dimension * 8 - screen.h/2)
   def tick() {
     if (!hasFocus) {
       input.releaseAll()
@@ -119,6 +120,8 @@ class Game extends Canvas with Runnable {
     if (input.regen.down) {
       input.regen.down = false
       world.generate()
+      xa = world.dimension * 8 - screen.w/2
+      ya = world.dimension * 8 - screen.h/2
     }
   }
 
@@ -127,15 +130,15 @@ class Game extends Canvas with Runnable {
     val g = bs.getDrawGraphics
 
     // Update Image
-//    val (cw,ch) = ((WIDTH - world.dimension)/2,(HEIGHT - world.dimension)/2)
-//    for (x <- 0 until WIDTH; y <- 0 until HEIGHT) {
-//      pixels(x + y * WIDTH) = world.getTile(x-cw,y-ch) match {
-//        case Tile.EMPTY => 0x0000FF
-//        case Tile.WALL => 0x00FF00
-//        case Tile.FLOOR => 0xFF0000
-//        case Tile.UNKNOWN => 0x000000
-//      }
-//    }
+    //    val (cw,ch) = ((WIDTH - world.dimension)/2,(HEIGHT - world.dimension)/2)
+    //    for (x <- 0 until WIDTH; y <- 0 until HEIGHT) {
+    //      pixels(x + y * WIDTH) = world.getTile(x-cw,y-ch) match {
+    //        case Tile.EMPTY => 0x0000FF
+    //        case Tile.WALL => 0x00FF00
+    //        case Tile.FLOOR => 0xFF0000
+    //        case Tile.UNKNOWN => 0x000000
+    //      }
+    //    }
     world.renderBackground(screen, xa, ya)
 
     for (y <- 0 until screen.h; x <- 0 until screen.w) {
@@ -145,8 +148,8 @@ class Game extends Canvas with Runnable {
     // Display Image
     g.fillRect(0, 0, getWidth, getHeight)
 
-    val (ww,hh) = (getWidth * SCALE, getHeight * SCALE)
-    g.drawImage(image, (getWidth - ww)/2, (getHeight - hh)/2, ww, hh, null)
+    val (ww, hh) = (getWidth * SCALE, getHeight * SCALE)
+    g.drawImage(image, (getWidth - ww) / 2, (getHeight - hh) / 2, ww, hh, null)
 
     g.dispose()
     bs.show()

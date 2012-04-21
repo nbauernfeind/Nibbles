@@ -2,7 +2,6 @@ package com.nefariouszhen.ld23.gen
 
 import tile.Tile
 import util.Random
-import collection.mutable.HashMap
 import com.nefariouszhen.ld23.graphics.Screen
 
 sealed trait Direction
@@ -49,16 +48,15 @@ case class Room(bx: Int, by: Int, tx: Int, ty: Int) {
   }
 }
 
-class World(val size: Int = 5) {
-  private[this] val (minRS, maxRS) = (4, 8)
+class World(val size: Int = 8) {
+  private[this] val (minRS, maxRS) = (4, 10)
+  private[this] val (minCL, maxCL) = (4, 10)
 
   val dimension = 1 << size
   private[this] val rand = new Random()
   private[this] val m = Array.ofDim[Tile](dimension, dimension)
 
-
-  def getTile(x: Int, y: Int): Tile = if (!checkDimensions(Point(x, y))) Tile.UNKNOWN else Tile.FLOOR
-  //  def getTile(x: Int, y: Int): Tile = if (!checkDimensions(Point(x, y))) Tile.UNKNOWN else m(x)(y)
+  def getTile(x: Int, y: Int): Tile = if (!checkDimensions(Point(x, y))) Tile.UNKNOWN else m(x)(y)
 
   generate()
 
@@ -69,6 +67,7 @@ class World(val size: Int = 5) {
     for (y <- yo to h + yo; x <- xo to w + xo) {
       getTile(x, y).render(screen, this, x, y)
     }
+    screen.offset = Point(0,0)
   }
 
   def generate() {
@@ -76,31 +75,14 @@ class World(val size: Int = 5) {
       m(i)(j) = Tile.EMPTY
     }
 
-    val rooms = (0 until 120).flatMap(_ => createRoom())
-    val start = rooms.head
-    val dist = HashMap[Room, Int]()
-
-    rooms.foreach(r => dist.put(r, start.dist(r)))
-
-    var nr = rooms.tail
-
-    //    while (nr.length > 0) {
-    //      val nextRoom = nr.sortBy(dist(_)).head
-    //      nr = nr.filter(_ != nextRoom)
-    //      val d = dist.remove(nextRoom).get
-    //      nr.foreach(r => dist.put(r, math.min(dist(r), nextRoom.dist(r))))
-    //
-    //      val valid = rooms.filter(r => !nr.contains(r) && r.dist(nextRoom) <= d).head
-    //      val (a, b) = (valid.randPoint(rand), nextRoom.randPoint(rand))
-    //      createCorridor(a, b.copy(y = a.y))
-    //      createCorridor(a.copy(x = b.x), b)
-    //    }
+    createRoom(Point(dimension >> 1, dimension >> 1), 1000)
   }
 
-  private[this] def createRoom(c: Point, attempts: Int) {
+  private[this] def createRoom(c: Point, attempts: Int): Int = {
     if (attempts <= 0) {
-      return
+      return attempts
     }
+    var localAttempts = attempts - 1
 
     // Generate room with borders on lines bx,by,tx,ty
     val (w, h) = (nextInt(minRS, maxRS), nextInt(minRS, maxRS))
@@ -108,7 +90,7 @@ class World(val size: Int = 5) {
     val (tx, ty) = (bx + w, by + h)
 
     if (!checkDimensions(Point(bx, by)) || !checkDimensions(Point(tx, ty))) {
-      return
+      return localAttempts
     }
 
     for (i <- bx + 1 until tx; j <- by + 1 until ty) {
@@ -124,11 +106,14 @@ class World(val size: Int = 5) {
       setToWallIfEmpty(Point(i, by))
       setToWallIfEmpty(Point(i, ty))
     }
+    println("Created room: " + c + " " + (w,h))
 
     var dirs = Direction.values
-    var done = false
+    var buildCorridor = true
 
-    while (!done) {
+    while (buildCorridor && localAttempts > 0) {
+      localAttempts -= 1
+
       var d = dirs(rand.nextInt(dirs.size))
       dirs = dirs.filter(_ == d)
 
@@ -139,30 +124,47 @@ class World(val size: Int = 5) {
         case Direction.WEST => Point(tx, nextInt(by + 1, ty - 1))
       }
 
-      val s = buildCorridor(p, d)
-      createRoom(s, attempts - 1)
-
-      done = rand.nextInt(100) > 10
-    }
-  }
-
-  private[this] def buildCorridor(s: Point, d: Direction): Point = {
-    val len = nextInt(minCL, maxCL)
-
-    var p = s
-    for (l <- 0 until len) {
-      if (checkDimensions(p)) {
-        m(p.x)(p.y) = Tile.FLOOR
-        Direction.values.map(p.move _).filter(_ != p).foreach(setToWallIfEmpty _)
+      val len = nextInt(minCL, maxCL)
+      for (l <- 0 until len) {
+        if (checkDimensions(p)) {
+          m(p.x)(p.y) = Tile.FLOOR
+          Direction.values.map(p.move _).filter(_ != p).foreach(setToWallIfEmpty _)
+          buildCorridor = false
+        } else {
+          buildCorridor = true
+        }
         p = p.move(d)
+      }
+
+      if (!buildCorridor) {
+        val remAttempts = createRoom(p, attempts - 1)
+        if (remAttempts == localAttempts) {
+          buildCorridor = true
+        }
+        localAttempts = remAttempts
       }
     }
 
-    rand.nextInt(100) match {
-      case i: Int if i < 50 => p
-      case _ => buildCorridor(p, Direction.values.filter(_ != d)(rand.nextInt(Direction.values.size - 1)))
-    }
+    localAttempts
   }
+
+  //  private[this] def buildCorridor(s: Point, d: Direction): Point = {
+  //    val len = nextInt(minCL, maxCL)
+  //
+  //    var p = s
+  //    for (l <- 0 until len) {
+  //      if (checkDimensions(p)) {
+  //        m(p.x)(p.y) = Tile.FLOOR
+  //        Direction.values.map(p.move _).filter(_ != p).foreach(setToWallIfEmpty _)
+  //        p = p.move(d)
+  //      }
+  //    }
+  //
+  //    rand.nextInt(100) match {
+  //      case i: Int if i < 50 => p
+  //      case _ => buildCorridor(p, Direction.values.filter(_ != d)(rand.nextInt(Direction.values.size - 1)))
+  //    }
+  //  }
 
   private[this] def nextInt(min: Int, max: Int): Int = rand.nextInt(max - min) + min
 
