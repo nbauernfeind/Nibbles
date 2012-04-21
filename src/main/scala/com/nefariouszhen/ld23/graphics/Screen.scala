@@ -8,6 +8,7 @@ object Screen {
 }
 
 class Screen(val w: Int, val h: Int, sheet: SpriteSheet) {
+
   import Screen._
 
   val pixels = Array.ofDim[Int](w * h)
@@ -36,11 +37,13 @@ class Screen(val w: Int, val h: Int, sheet: SpriteSheet) {
             val c = sheet.pixels(xs + ys * sheet.width + toffs);
 
             // if not transparent color:
-            val idx = x + xp + (y + yp) * w
-            if (idx >= pixels.length) {
-              println("x %d xp %d y %d yp %d idx %d ttl %d".format(x, xp, y, yp, idx, pixels.length))
-            } else {
-              pixels((x + xp) + (y + yp) * w) = c;
+            if (c != 0xb4e55e) {
+              val idx = x + xp + (y + yp) * w
+              if (idx >= pixels.length) {
+                println("x %d xp %d y %d yp %d idx %d ttl %d".format(x, xp, y, yp, idx, pixels.length))
+              } else {
+                pixels((x + xp) + (y + yp) * w) = c;
+              }
             }
           }
         }

@@ -13,12 +13,19 @@ object Direction {
 
   val values = List(NORTH, SOUTH, EAST, WEST)
   def nextDir(r: Random): Direction = values(r.nextInt(values.size))
+
+  def toDirection(dx: Int, dy: Int): Direction = {
+    if (dx > 0) WEST
+    else if (dx < 0) EAST
+    else if (dy > 0) SOUTH
+    else NORTH
+  }
 }
 
 case class Point(x: Int, y: Int) {
   def move(d: Direction): Point = d match {
-    case Direction.NORTH => Point(x, y + 1)
-    case Direction.SOUTH => Point(x, y - 1)
+    case Direction.NORTH => Point(x, y - 1)
+    case Direction.SOUTH => Point(x, y + 1)
     case Direction.EAST => Point(x - 1, y)
     case Direction.WEST => Point(x + 1, y)
   }
@@ -28,7 +35,7 @@ case class Point(x: Int, y: Int) {
       Direction.WEST
     } else if (p.x < x) {
       Direction.EAST
-    } else if (p.y > y) {
+    } else if (p.y < y) {
       Direction.NORTH
     } else {
       Direction.SOUTH
@@ -65,10 +72,10 @@ class World(val size: Int = 8) {
     val (w, h) = ((screen.w + 15) >> 4, (screen.h + 15) >> 4)
     screen.offset = Point(xScroll, yScroll)
     for (y <- yo to h + yo; x <- xo to w + xo) {
-      val p = Point(x,y)
+      val p = Point(x, y)
       getTile(p).render(screen, this, p)
     }
-    screen.offset = Point(0,0)
+    screen.offset = Point(0, 0)
   }
 
   def generate() {

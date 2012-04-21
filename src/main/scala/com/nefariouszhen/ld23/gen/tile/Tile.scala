@@ -7,6 +7,7 @@ import com.nefariouszhen.ld23.entity.Entity
 sealed trait Tile {
   def render(screen: Screen, world: World, p: Point)
   def mayPass(world: World, p: Point, e: Entity): Boolean
+  def steppedOn(world: World, p: Point, e: Entity)
 }
 
 object Tile {
@@ -33,6 +34,8 @@ abstract class SimpleTile(ta: Int, tb: Int, tc: Int, td: Int) extends Tile {
   def render(screen: Screen, world: World, p: Point) {
     rs.foreach(st => screen.render(p.x * 16 + st.dx, p.y * 16 + st.dy, st.tile, 0))
   }
+
+  def steppedOn(world: World, p: Point, e: Entity) {}
 }
 
 class EmptyTile() extends SimpleTile(0,1,20,21) {
@@ -40,7 +43,7 @@ class EmptyTile() extends SimpleTile(0,1,20,21) {
 }
 
 //class WallTile() extends SimpleTile(2,3,22,23)
-class WallTile() extends SimpleTile(0,1,20,21) {
+class WallTile() extends SimpleTile(2,2,2,2) {
   def mayPass(world: World, p: Point, e: Entity) = false
 }
 
