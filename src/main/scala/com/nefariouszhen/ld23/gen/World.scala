@@ -155,57 +155,7 @@ class World(val size: Int = 8) {
     localAttempts
   }
 
-  //  private[this] def buildCorridor(s: Point, d: Direction): Point = {
-  //    val len = nextInt(minCL, maxCL)
-  //
-  //    var p = s
-  //    for (l <- 0 until len) {
-  //      if (checkDimensions(p)) {
-  //        m(p.x)(p.y) = Tile.FLOOR
-  //        Direction.values.map(p.move _).filter(_ != p).foreach(setToWallIfEmpty _)
-  //        p = p.move(d)
-  //      }
-  //    }
-  //
-  //    rand.nextInt(100) match {
-  //      case i: Int if i < 50 => p
-  //      case _ => buildCorridor(p, Direction.values.filter(_ != d)(rand.nextInt(Direction.values.size - 1)))
-  //    }
-  //  }
-
   private[this] def nextInt(min: Int, max: Int): Int = rand.nextInt(max - min) + min
-
-  private[this] def createRoom(): Option[Room] = {
-    // Generate room with borders on lines bx,by,tx,ty
-    val (x, y) = (rand.nextInt(dimension), rand.nextInt(dimension))
-    val (w, h) = (nextInt(minRS, maxRS), nextInt(minRS, maxRS))
-    val (bx, by) = (x - w / 2, y - h / 2)
-    val (tx, ty) = (bx + w, by + h)
-
-    if (!checkDimensions(Point(bx, by)) || !checkDimensions(Point(tx, ty))) {
-      return None
-    }
-
-    for (i <- bx + 1 until tx; j <- by + 1 until ty) {
-      if (m(i)(j) == Tile.WALL) return None
-    }
-
-    for (i <- bx + 1 until tx; j <- by + 1 until ty) {
-      m(i)(j) = Tile.FLOOR
-    }
-
-    for (j <- by to ty) {
-      setToWallIfEmpty(Point(bx, j))
-      setToWallIfEmpty(Point(tx, j))
-    }
-
-    for (i <- bx to tx) {
-      setToWallIfEmpty(Point(i, by))
-      setToWallIfEmpty(Point(i, ty))
-    }
-
-    Some(Room(bx, by, tx, ty))
-  }
 
   private[this] def setToWallIfEmpty(p: Point) {
     if (checkDimensions(p) && m(p.x)(p.y) == Tile.EMPTY) {
