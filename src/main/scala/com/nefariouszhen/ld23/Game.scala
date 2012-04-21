@@ -94,6 +94,7 @@ class Game extends Canvas with Runnable {
         case Tile.EMPTY => 0x0000FF
         case Tile.WALL => 0x00FF00
         case Tile.FLOOR => 0xFF0000
+        case Tile.UNKNOWN => 0x000000
       }
     }
 
