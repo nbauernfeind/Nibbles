@@ -33,5 +33,6 @@ class SimpleTile(ta: Int, tb: Int, tc: Int, td: Int) extends Tile {
   }
 }
 case class EmptyTile() extends SimpleTile(0,1,20,21)
-case class WallTile() extends SimpleTile(2,3,22,23)
+//case class WallTile() extends SimpleTile(2,3,22,23)
+case class WallTile() extends SimpleTile(0,1,20,21)
 case class FloorTile() extends SimpleTile(4,5,24,25)
