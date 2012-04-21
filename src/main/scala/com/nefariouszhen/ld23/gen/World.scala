@@ -31,6 +31,9 @@ case class Pos(x: Int, y: Int) {
 }
 
 class World(val size: Int = 6) {
+  private[this] val (minRS, maxRS) = (4, 6)
+  private[this] val (minCL, maxCL) = (5, 10)
+
   val dimension = 1 << size
   private[this] val rand = new Random()
   private[this] val m = Array.ofDim[Tile](dimension, dimension)
@@ -38,22 +41,24 @@ class World(val size: Int = 6) {
   for (i <- 0 until dimension; j <- 0 until dimension) {
     m(i)(j) = Tile.EMPTY
   }
-  createRoom(dimension >> 1, dimension >> 1, 4, 6, 5, 10, Direction.SOUTH, 20)
 
-  def getTile(x: Int, y: Int): Tile = if (!checkDimensions(x, y)) Tile.UNKNOWN else m(x)(y)
+  val center = Pos(dimension >> 1, dimension >> 1)
+  createRoom(center, 20)
+
+  def getTile(x: Int, y: Int): Tile = if (!checkDimensions(Pos(x, y))) Tile.UNKNOWN else m(x)(y)
 
   private[this] def nextInt(min: Int, max: Int): Int = rand.nextInt(max - min) + min
 
-  private[this] def createRoom(x: Int, y: Int, minRS: Int, maxRS: Int, minCL: Int, maxCL: Int, dir: Direction, attempts: Int): Int = {
+  private[this] def createRoom(p: Pos, attempts: Int): Int = {
     if (attempts <= 0) return attempts
     var localAttempts = attempts
 
     // Generate room with borders on lines bx,by,tx,ty
     val (w, h) = (nextInt(minRS, maxRS), nextInt(minRS, maxRS))
-    val (bx, by) = (x - w / 2, y - h / 2)
+    val (bx, by) = (p.x - w / 2, p.y - h / 2)
     val (tx, ty) = (bx + w, by + h)
 
-    if (!checkDimensions(bx, by) || !checkDimensions(tx, ty)) {
+    if (!checkDimensions(Pos(bx, by)) || !checkDimensions(Pos(tx, ty))) {
       return localAttempts
     }
 
@@ -62,17 +67,19 @@ class World(val size: Int = 6) {
     }
 
     for (j <- by to ty) {
-      setToWallIfEmpty(bx, j)
-      setToWallIfEmpty(tx, j)
+      setToWallIfEmpty(Pos(bx, j))
+      setToWallIfEmpty(Pos(tx, j))
     }
 
     for (i <- bx to tx) {
-      setToWallIfEmpty(i, by)
-      setToWallIfEmpty(i, ty)
+      setToWallIfEmpty(Pos(i, by))
+      setToWallIfEmpty(Pos(i, ty))
     }
 
     var buildCorridor = true
     while (buildCorridor && localAttempts > 0) {
+      localAttempts -= 1
+
       val d = Direction.nextDir(rand)
       val len = nextInt(minCL, maxCL)
 
@@ -84,26 +91,31 @@ class World(val size: Int = 6) {
       }
 
       for (l <- 0 until len) {
-        if (checkDimensions(p.x, p.y)) {
-          m(p.x)(p.y) = Tile.UNKNOWN
+        if (checkDimensions(p)) {
+          m(p.x)(p.y) = Tile.FLOOR
           Direction.values.map(p.move _).filter(_ != p).foreach(setToWallIfEmpty _)
+          buildCorridor = false
+        } else {
+          buildCorridor = true
         }
         p = p.move(d)
       }
 
-      buildCorridor = false
+      if (!buildCorridor) {
+        val attemptsLeft = createRoom(p, localAttempts)
+        if (attemptsLeft == localAttempts) buildCorridor = true
+        localAttempts = attemptsLeft
+      }
     }
 
     localAttempts
   }
 
-  private[this] def setToWallIfEmpty(p: Pos): Unit = setToWallIfEmpty(p.x, p.y)
-
-  private[this] def setToWallIfEmpty(x: Int, y: Int) {
-    if (checkDimensions(x, y) && m(x)(y) == Tile.EMPTY) {
-      m(x)(y) = Tile.WALL
+  private[this] def setToWallIfEmpty(p: Pos) {
+    if (checkDimensions(p) && m(p.x)(p.y) == Tile.EMPTY) {
+      m(p.x)(p.y) = Tile.WALL
     }
   }
 
-  private[this] def checkDimensions(x: Int, y: Int): Boolean = (x >= 0 && x < dimension && y >= 0 && y < dimension)
+  private[this] def checkDimensions(p: Pos): Boolean = (p.x >= 0 && p.x < dimension && p.y >= 0 && p.y < dimension)
 }
