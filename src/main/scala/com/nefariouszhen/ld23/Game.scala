@@ -1,15 +1,34 @@
 package com.nefariouszhen.ld23
 
 import gen.{Tile, World}
-import java.awt.Canvas
 import sound.SoundLoop
 import java.awt.image.{DataBufferInt, BufferedImage}
+import javax.swing.JFrame
+import java.awt.{BorderLayout, Dimension, Canvas}
 
 object Game {
-  val WIDTH = 160
-  val HEIGHT = 120
+  val WIDTH = 320
+  val HEIGHT = 240
   val NAME = "Nibble"
-  val SCALE = 3
+  val SCALE = 2
+
+  def main(args: Array[String]) {
+    val game = new Game()
+    game.setMinimumSize(new Dimension(WIDTH * SCALE, HEIGHT * SCALE))
+    game.setMaximumSize(new Dimension(WIDTH * SCALE, HEIGHT * SCALE))
+    game.setPreferredSize(new Dimension(WIDTH * SCALE, HEIGHT * SCALE))
+
+    val frame = new JFrame(Game.NAME)
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
+    frame.setLayout(new BorderLayout())
+    frame.add(game, BorderLayout.CENTER)
+    frame.pack()
+    frame.setResizable(false)
+    frame.setLocationRelativeTo(null)
+    frame.setVisible(true)
+
+    game.start()
+  }
 }
 
 class Game extends Canvas with Runnable {
@@ -19,6 +38,8 @@ class Game extends Canvas with Runnable {
 
   private[this] val image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB)
   private[this] val pixels = image.getRaster.getDataBuffer.asInstanceOf[DataBufferInt].getData
+
+  private[this] val input = new InputHandler(this)
 
   private[this] val world = new World()
 
@@ -78,8 +99,24 @@ class Game extends Canvas with Runnable {
     requestFocus()
   }
 
+  var (xa, ya) = (0, 0)
   def tick() {
+    if (!hasFocus) {
+      input.releaseAll()
+      return
+    }
 
+    input.tick()
+
+    if (input.left.down) xa -= 10
+    if (input.right.down) xa += 10
+    if (input.down.down) ya += 10
+    if (input.up.down) ya -= 10
+
+    if (input.regen.down) {
+      input.regen.down = false
+      world.generate()
+    }
   }
 
   def render() {
@@ -89,7 +126,6 @@ class Game extends Canvas with Runnable {
     // Update Image
     val (cw,ch) = ((WIDTH - world.dimension)/2,(HEIGHT - world.dimension)/2)
     for (x <- 0 until WIDTH; y <- 0 until HEIGHT) {
-//      pixels(x + y * WIDTH) = ((HEIGHT-y).toDouble / HEIGHT * 0xFF).toInt
       pixels(x + y * WIDTH) = world.getTile(x-cw,y-ch) match {
         case Tile.EMPTY => 0x0000FF
         case Tile.WALL => 0x00FF00
@@ -102,7 +138,7 @@ class Game extends Canvas with Runnable {
     g.fillRect(0, 0, getWidth, getHeight)
 
     val (ww,hh) = (getWidth * SCALE, getHeight * SCALE)
-    g.drawImage(image, (getWidth - ww)/2, (getHeight - hh)/2, ww, hh, null)
+    g.drawImage(image, (getWidth - ww)/2-xa, (getHeight - hh)/2-ya, ww, hh, null)
 
     g.dispose()
     bs.show()
