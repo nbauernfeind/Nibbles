@@ -21,8 +21,8 @@ object SoundLoop {
 }
 
 // Start/Transition/Stop Duration (all different) Min/Max probably fixed.
-private class SoundLoopImpl(name: String, min: Float = -20.0f, max: Float = -05.0f, durationInMs: Int = 2200) extends SoundLoop {
-//private class SoundLoopImpl(name: String, min: Float = -20.0f, max: Float = -15.0f, durationInMs: Int = 2200) extends SoundLoop {
+//private class SoundLoopImpl(name: String, min: Float = -20.0f, max: Float = -05.0f, durationInMs: Int = 2200) extends SoundLoop {
+private class SoundLoopImpl(name: String, min: Float = -20.0f, max: Float = -15.0f, durationInMs: Int = 2200) extends SoundLoop {
   private[this] val audio = AudioSystem.getAudioInputStream(this.getClass.getResource(name))
   private[this] val playing = new AtomicBoolean(false)
 

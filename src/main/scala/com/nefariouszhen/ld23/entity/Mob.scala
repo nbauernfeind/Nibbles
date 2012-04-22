@@ -5,9 +5,11 @@ import util.Random
 import com.nefariouszhen.ld23.gen.{Direction, World}
 import com.nefariouszhen.ld23.graphics.Screen
 
-abstract class Mob(world: World) extends Entity(world) {
+abstract class Mob(val world: World) extends Entity(world) {
   def getShape: Shape
   def getColor: Int
+  def getSpeed: Int
+
   def xr = getShape.xr
   def yr = getShape.yr
 
@@ -21,10 +23,16 @@ abstract class Mob(world: World) extends Entity(world) {
 
   def sightR2() = (16 * sightR + 1) * (16 * sightR + 1)
 
+  def distToPlayer: Tuple2[Int, Int] = {
+    (world.getPlayer.x - x, world.getPlayer.y - y)
+  }
+
   override def tick() {
     tickTime += 1
 
     if (health <= 0) die()
+
+    getShape.tick(this)
   }
 
   protected def die() {
