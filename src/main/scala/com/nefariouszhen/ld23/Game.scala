@@ -8,6 +8,7 @@ import java.awt.image.{DataBufferInt, BufferedImage}
 import javax.swing.JFrame
 import java.awt.{BorderLayout, Dimension, Canvas}
 import javax.imageio.ImageIO
+import util.Random
 
 object Game {
   val WIDTH = 320
@@ -48,6 +49,8 @@ class Game extends Canvas with Runnable {
   private[this] val screen = new Screen(WIDTH, HEIGHT, new SpriteSheet(loadImgResource("/tiles.png")))
 
   val world = new World()
+
+  private[this] val rand = new Random
   private[this] var player: Player = null
 
   def start() {
@@ -62,7 +65,7 @@ class Game extends Canvas with Runnable {
   }
 
   def run() {
-    val snd = SoundLoop.BG_LOOP
+    val snd = SoundLoop.BG(rand.nextInt(SoundLoop.BG.length))
     snd.startPlaying()
 
     var lastTime = System.nanoTime()

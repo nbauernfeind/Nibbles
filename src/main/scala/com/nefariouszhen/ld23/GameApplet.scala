@@ -21,7 +21,7 @@ class GameApplet extends Applet {
   }
 
   override def destroy() {
-    super.destroy()
     stop()
+    super.destroy()
   }
 }
