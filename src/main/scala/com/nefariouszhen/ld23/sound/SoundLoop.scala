@@ -45,11 +45,11 @@ private class SoundLoopImpl(name: String, min: Float = -20.0f, max: Float = -05.
             Thread.sleep(50)
           }
 
-//          val stopTime = System.currentTimeMillis()
-//          while (volume.getValue > min + 0.001) {
-//            volume.setValue(math.min(max, (max - min) / (durationInMs / 4) * ((durationInMs / 4) - (System.currentTimeMillis() - stopTime)) + min))
-//            Thread.sleep(50)
-//          }
+          val stopTime = System.currentTimeMillis()
+          while (volume.getValue > min + 0.001) {
+            volume.setValue(math.min(max, (max - min) / (durationInMs / 4) * ((durationInMs / 4) - (System.currentTimeMillis() - stopTime)) + min))
+            Thread.sleep(50)
+          }
 
           clip.stop()
         }
