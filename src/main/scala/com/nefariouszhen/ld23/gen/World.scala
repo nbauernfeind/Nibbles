@@ -5,7 +5,7 @@ import util.Random
 import com.nefariouszhen.ld23.graphics.Screen
 import java.util.ArrayList
 import scala.collection.JavaConversions._
-import com.nefariouszhen.ld23.entity.{Player, Entity}
+import com.nefariouszhen.ld23.entity.{Enemy, Player, Entity}
 
 sealed trait Direction
 object Direction {
@@ -84,6 +84,7 @@ object World {
 class World(val size: Int = 8) {
   private[this] val (minRS, maxRS) = (4, 10)
   private[this] val (minCL, maxCL) = (4, 10)
+  private[this] val monsterDensity = 2
 
   val dimension = 1 << size
   private[this] val rand = new Random()
@@ -95,9 +96,13 @@ class World(val size: Int = 8) {
   def getTile(p: Point): Tile = if (!checkDimensions(p)) Tile.UNKNOWN else m(p.x)(p.y)
   private[this] def getSprites(p: Point): ArrayList[Entity] = if (!checkDimensions(p)) new ArrayList[Entity]() else entitiesByTile(p.x)(p.y)
 
-  def addPlayer(player: Player) {
-    add(player)
-  }
+  private[this] var player: Player = null
+  def getPlayer = player
+
+  //  def addPlayer(player: Player) {
+  //    this.player = player
+  //    add(player)
+  //  }
 
   private[this] def add(entity: Entity) {
     entities.add(entity)
@@ -118,6 +123,8 @@ class World(val size: Int = 8) {
   }
 
   def tick() {
+    trySpawn(1)
+
     for (i <- 0 until dimension * dimension / 64) {
       val p = Point.nextPoint(rand, dimension, dimension)
       getTile(p).tick(this, p)
@@ -189,7 +196,49 @@ class World(val size: Int = 8) {
     screen.offset = (0, 0)
   }
 
-  def generate() {
+  def trySpawn(cnt: Int) {
+    for (i <- 0 until cnt) {
+      val e = new Enemy(this)
+      if (findStartPos(e)) {
+        add(e)
+      }
+    }
+  }
+
+  private[this] def findStartPos(e: Enemy): Boolean = {
+    val p = Point.nextPoint(rand, dimension, dimension)
+    val (x, y) = (16 * p.x + 8, 16 * p.y + 8)
+
+    val (xd, yd) = (player.x - x, player.y - y)
+    if (xd * xd + yd * yd < 80 * 80)
+      return false
+
+    val densityR = monsterDensity * 16
+    if (getEntities(x - densityR, y - densityR, x + densityR, y + densityR).size > 0)
+      return false
+
+    if (getTile(p).mayPass(this, p, e)) {
+      e.x = x
+      e.y = y
+      return true
+    }
+
+    false
+  }
+
+  private[this] def getEntities(x0: Int, y0: Int, x1: Int, y1: Int): Iterable[Entity] = {
+    import Direction._
+    val p0 = Point.toPoint(x0, y0).move(NORTH).move(EAST)
+    val p1 = Point.toPoint(x1, y1).move(SOUTH).move(WEST)
+
+    val entities = for (y <- p0.y to p1.y; x <- p0.x to p1.x) yield {
+      getSprites(Point(x, y)).filter(_.intersects(x0, y0, x1, y1))
+    }
+
+    entities.flatten
+  }
+
+  def generate(newPlayer: Player) {
     for (i <- 0 until dimension; j <- 0 until dimension) {
       m(i)(j) = Tile.EMPTY
       entitiesByTile(i)(j) = new ArrayList[Entity]()
@@ -202,6 +251,11 @@ class World(val size: Int = 8) {
     entities.toList.foreach(remove _)
 
     createRoom(Point(dimension >> 1, dimension >> 1), 1000)
+
+    player = newPlayer
+    player.x = dimension / 2 * 16 + 4
+    player.y = dimension / 2 * 16 + 4
+    add(player)
   }
 
   private[this] def createRoom(c: Point, attempts: Int): Int = {

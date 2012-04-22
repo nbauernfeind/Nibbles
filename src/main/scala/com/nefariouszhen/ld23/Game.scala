@@ -51,7 +51,7 @@ class Game extends Canvas with Runnable {
   val world = new World()
 
   private[this] val rand = new Random
-  private[this] var player: Player = null
+  private[this] def player = world.getPlayer
 
   def start() {
     running = true
@@ -112,12 +112,8 @@ class Game extends Canvas with Runnable {
   }
 
   def resetGame() {
-    player = new Player(this, input)
-    player.x = world.dimension / 2 * 16 + 4
-    player.y = world.dimension / 2 * 16 + 4
-
-    world.generate()
-    world.addPlayer(player)
+    world.generate(new Player(this, input))
+    world.trySpawn(5000)
   }
 
   def tick() {

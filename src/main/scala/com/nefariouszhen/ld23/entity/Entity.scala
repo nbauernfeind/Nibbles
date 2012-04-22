@@ -34,6 +34,10 @@ abstract class Entity(world: World) {
     !stopped
   }
 
+  def intersects(x0: Int, y0: Int, x1: Int, y1: Int): Boolean = {
+    !(x + xr < x0 || y + yr < y0 || x - xr > x1 || y - yr > y1)
+  }
+
   private[this] def move2(xa: Int, ya: Int): Boolean = {
     val p0 = Point.toPoint(x - xr, y - yr)
     val p1 = Point.toPoint(x + xr - 1, y + yr - 1)
