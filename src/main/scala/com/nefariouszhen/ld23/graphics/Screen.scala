@@ -33,7 +33,7 @@ class Screen(val w: Int, val h: Int, sheet: SpriteSheet) {
         for (x <- 0 until 8) {
           if (x + xp >= 0 && x + xp < w) {
             val xs = if (mirrorX) 7 - x else x
-            val c = sheet.pixels(xs + ys * sheet.width + toffs);
+            val c = sheet.pixels(xs + ys * sheet.width + toffs)
 
             // Heh, transparent booger green
             if ((c & 0xffffff) != 0xb4e55e) {
@@ -41,9 +41,27 @@ class Screen(val w: Int, val h: Int, sheet: SpriteSheet) {
               if (idx >= pixels.length) {
                 println("x %d xp %d y %d yp %d idx %d ttl %d".format(x, xp, y, yp, idx, pixels.length))
               } else {
-                pixels((x + xp) + (y + yp) * w) = c;
+                pixels((x + xp) + (y + yp) * w) = c
               }
             }
+          }
+        }
+      }
+    }
+  }
+
+  def darken(_xp: Int, _yp: Int, percent: Double) {
+    val xp = _xp - offset._1
+    val yp = _yp - offset._2
+    for (y <- 0 until 8) {
+      if (y + yp >= 0 && y + yp < h) {
+        for (x <- 0 until 8) {
+          if (x + xp >= 0 && x + xp < w) {
+            val c = pixels((x + xp) + (y + yp) * w).toLong
+            val r = ((c & 0xff0000) * percent).toLong & 0xff0000
+            val g = ((c & 0x00ff00) * percent).toLong & 0x00ff00
+            val b = ((c & 0x0000ff) * percent).toLong & 0x0000ff
+            pixels((x + xp) + (y + yp) * w) = (r|g|b).toInt
           }
         }
       }

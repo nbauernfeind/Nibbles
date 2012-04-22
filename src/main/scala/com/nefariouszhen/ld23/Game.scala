@@ -138,6 +138,7 @@ class Game extends Canvas with Runnable {
     val (xo, yo) = (player.x - screen.w/2, player.y - screen.h/2)
     world.renderBackground(screen, xo, yo)
     world.renderSprites(screen, xo, yo)
+    world.renderFogOfWar(screen, player, xo, yo)
 
     for (y <- 0 until screen.h; x <- 0 until screen.w) {
       pixels(x + y * WIDTH) = screen.pixels(x + y * screen.w)

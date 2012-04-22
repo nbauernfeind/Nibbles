@@ -13,6 +13,9 @@ abstract class Mob(world: World) extends Entity(world) {
   var maxHealth = 10
   var health = maxHealth
   var tickTime = 0
+  var sightR = 1
+
+  def sightR2() = (16 * sightR + 1) * (16 * sightR + 1)
 
   override def tick() {
     tickTime += 1

@@ -10,7 +10,7 @@ class Player(game: Game, input: InputHandler) extends Mob(game.world) {
   yr = 3
 
   def render(screen: Screen) {
-    screen.render(x-4, y-4, 0 + 3*20, 0)
+    screen.render(x - 4, y - 4, ((walkDist >> 4) & 1) + 3 * 20, 0)
   }
 
   override def tick() {

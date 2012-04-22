@@ -50,14 +50,18 @@ case class Point(x: Int, y: Int) {
     }
   }
 
-  def getNeighbors:Iterable[Point] = {
+  def distanceTo(p: Point): Double = math.sqrt(List(x - p.x, y - p.y).map(x => x * x).sum)
+
+  def getNeighbors: Iterable[Point] = {
     Direction.values.map(this.move _)
   }
 
-  def getDiagonals:Iterable[Point] = {
+  def getDiagonals: Iterable[Point] = {
     import Direction._
-    val dirs = List((NORTH,EAST),(NORTH,WEST),(SOUTH,EAST),(SOUTH,WEST))
-    dirs.map { case (a,b) => this.move(a).move(b) }
+    val dirs = List((NORTH, EAST), (NORTH, WEST), (SOUTH, EAST), (SOUTH, WEST))
+    dirs.map {
+      case (a, b) => this.move(a).move(b)
+    }
   }
 }
 
@@ -73,6 +77,10 @@ case class Room(bx: Int, by: Int, tx: Int, ty: Int) {
   }
 }
 
+object World {
+  val MD_SEEN_BIT = 0x1
+}
+
 class World(val size: Int = 8) {
   private[this] val (minRS, maxRS) = (4, 10)
   private[this] val (minCL, maxCL) = (4, 10)
@@ -80,6 +88,7 @@ class World(val size: Int = 8) {
   val dimension = 1 << size
   private[this] val rand = new Random()
   private[this] val m = Array.ofDim[Tile](dimension, dimension)
+  private[this] val md = Array.ofDim[Int](dimension * 2, dimension * 2)
   private[this] val entitiesByTile = Array.ofDim[ArrayList[Entity]](dimension, dimension)
   private[this] val entities = new ArrayList[Entity]()
 
@@ -155,11 +164,42 @@ class World(val size: Int = 8) {
     screen.offset = (0, 0)
   }
 
+  def renderFogOfWar(screen: Screen, player: Player, xScroll: Int, yScroll: Int) {
+    val p = Point.toPoint(xScroll, yScroll)
+    val sz = Point.toPoint(screen.w + 15, screen.h + 15)
+
+    screen.offset = (xScroll, yScroll)
+    for (y <- 16 * p.y to 16 * (sz.y + p.y) by 8; x <- 16 * p.x to 16 * (sz.x + p.x) by 8) {
+      val dd = List(player.x - x - 4, player.y - y - 4).map(x => x * x).sum
+      if (x >= 0 && x < 16 * dimension && y >= 0 && y < 16 * dimension) {
+        val percent = if (dd <= player.sightR2) {
+          md(x >> 3)(y >> 3) |= World.MD_SEEN_BIT
+          1.1
+        } else if ((md(x >> 3)(y >> 3) & World.MD_SEEN_BIT) == 0) {
+          0.0
+        } else {
+          0.75
+        }
+
+        if (percent < 1.0) {
+          screen.darken(x, y, percent)
+        }
+      }
+    }
+    screen.offset = (0, 0)
+  }
+
   def generate() {
     for (i <- 0 until dimension; j <- 0 until dimension) {
       m(i)(j) = Tile.EMPTY
       entitiesByTile(i)(j) = new ArrayList[Entity]()
     }
+
+    for (i <- 0 until 2 * dimension; j <- 0 until 2 * dimension) {
+      md(i)(j) = 0
+    }
+
+    entities.toList.foreach(remove _)
 
     createRoom(Point(dimension >> 1, dimension >> 1), 1000)
   }
