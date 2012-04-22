@@ -1,14 +1,20 @@
 package com.nefariouszhen.ld23.entity
 
-import genome.Shape
+import genome._
 import util.Random
 import com.nefariouszhen.ld23.gen.{Direction, World}
 import com.nefariouszhen.ld23.graphics.Screen
 
 abstract class Mob(val world: World) extends Entity(world) {
-  def getShape: Shape
-  def getColor: Int
-  def getSpeed: Int
+
+  def bank: MemoryBank
+
+  val defaultShape = new Nibble
+  def getShape = bank.algos.collect({case ChangeShape(s) => s}).headOption.getOrElse(defaultShape)
+  def getColor = bank.algos.collect({case ChangeColor(c) => c}).headOption.getOrElse(0)
+  def getSpeed = 1 + bank.algos.collect({case SpeedBoost(s) => s}).sum
+  def getSightR = bank.algos.collect({case SightBoost(s) => s}).sum
+  def getMaxHealth = bank.algos.collect({case HealthBoost(h) => h}).sum + 1
 
   def xr = getShape.xr
   def yr = getShape.yr
@@ -19,9 +25,11 @@ abstract class Mob(val world: World) extends Entity(world) {
   var maxHealth = 10
   var health = maxHealth
   var tickTime = 0
-  var sightR = 1
 
-  def sightR2() = (16 * sightR + 1) * (16 * sightR + 1)
+  def sightR2() = {
+    val sr = getSightR
+    ((16 * sr + 1) * (16 * sr + 1)).toInt
+  }
 
   def distToPlayer: Tuple2[Int, Int] = {
     (world.getPlayer.x - x, world.getPlayer.y - y)

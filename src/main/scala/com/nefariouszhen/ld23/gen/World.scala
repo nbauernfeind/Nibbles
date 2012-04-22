@@ -99,11 +99,6 @@ class World(val size: Int = 8) {
   private[this] var player: Player = null
   def getPlayer = player
 
-  //  def addPlayer(player: Player) {
-  //    this.player = player
-  //    add(player)
-  //  }
-
   private[this] def add(entity: Entity) {
     entities.add(entity)
     insertEntity(entity.getPos, entity)
@@ -199,7 +194,8 @@ class World(val size: Int = 8) {
 
   def trySpawn(cnt: Int) {
     for (i <- 0 until cnt) {
-      val e = new Enemy(this)
+      val lvl = rand.nextInt(4) - 1 + player.lvl
+      val e = new Enemy(this, lvl)
       if (findStartPos(e)) {
         add(e)
       }
