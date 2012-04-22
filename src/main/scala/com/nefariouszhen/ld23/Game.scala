@@ -3,6 +3,7 @@ package com.nefariouszhen.ld23
 import entity.Player
 import gen.World
 import graphics.{Font, SpriteSheet, Screen}
+import screen.{TitleMenu, Menu}
 import sound.SoundLoop
 import java.awt.image.{DataBufferInt, BufferedImage}
 import javax.swing.JFrame
@@ -52,6 +53,11 @@ class Game extends Canvas with Runnable {
 
   private[this] val rand = new Random
   private[this] def player = world.getPlayer
+
+  private[this] var menu: Option[Menu] = None
+  def setMenu(m: Option[Menu]) {
+    menu = m
+  }
 
   def start() {
     running = true
@@ -109,6 +115,9 @@ class Game extends Canvas with Runnable {
   def init() {
     createBufferStrategy(3)
     requestFocus()
+
+    resetGame()
+    setMenu(Some(new TitleMenu(this, input)))
   }
 
   def resetGame() {
@@ -128,6 +137,12 @@ class Game extends Canvas with Runnable {
     }
 
     input.tick()
+
+    if (menu.isDefined) {
+      menu.foreach(_.tick())
+      return
+    }
+
     world.tick()
 
     if (input.regen.down) {
@@ -148,8 +163,7 @@ class Game extends Canvas with Runnable {
     world.renderSprites(screen, xo, yo)
     world.renderFogOfWar(screen, player, xo, yo)
 
-    Font.draw("Nibble Beta", screen, 0, 0)
-    Font.draw("abcdefghijklmnopqrstuvwxyz0123456789()<>", screen, 0, 8)
+    renderGui()
 
     for (y <- 0 until screen.h; x <- 0 until screen.w) {
       pixels(x + y * WIDTH) = screen.pixels(x + y * screen.w)
@@ -161,6 +175,12 @@ class Game extends Canvas with Runnable {
 
     g.dispose()
     bs.show()
+  }
+
+  def renderGui() {
+    Font.draw("Nibble Beta", screen, 0, 0)
+
+    menu.foreach(_.render(screen))
   }
 
   def loadImgResource(name: String) = ImageIO.read(this.getClass.getResourceAsStream(name))

@@ -1,5 +1,7 @@
 package com.nefariouszhen.ld23.graphics
 
+import com.nefariouszhen.ld23.entity.genome.SpriteInfo
+
 
 object Screen {
   val BIT_MIRROR_X = 0x01
@@ -13,9 +15,19 @@ class Screen(val w: Int, val h: Int, sheet: SpriteSheet) {
   val pixels = Array.ofDim[Int](w * h)
   var offset = Tuple2(0, 0)
 
+  def clear() {
+    fill(0)
+  }
+
   def fill(color: Int) {
     for (i <- 0 until pixels.length) {
       pixels(i) = color
+    }
+  }
+
+  def renderSprite(x: Int, y: Int, si: SpriteInfo, c: Int = 0xffffff, t: Int = 0) {
+    for (h <- 0 until si.h; w <- 0 until si.w) {
+      render(x - 4 + w * 8, y - 4 - h * 8, si.offset + w + t * si.w - h * 20, 0, c)
     }
   }
 
@@ -65,7 +77,7 @@ class Screen(val w: Int, val h: Int, sheet: SpriteSheet) {
     val r = ((o & 0xff0000) * rp).toLong & 0xff0000
     val g = ((o & 0x00ff00) * gp).toLong & 0x00ff00
     val b = ((o & 0x0000ff) * bp).toLong & 0x0000ff
-    (r|g|b).toInt
+    (r | g | b).toInt
   }
 
   def darken(_xp: Int, _yp: Int, percent: Double) {

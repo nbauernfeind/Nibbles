@@ -7,7 +7,7 @@ trait MenuItem {
   def renderInventory(screen: Screen, x0: Int, y0: Int)
 }
 
-abstract class Menu(val game: Game, input: InputHandler) {
+abstract class Menu {
   def tick()
   def render(screen: Screen)
 
