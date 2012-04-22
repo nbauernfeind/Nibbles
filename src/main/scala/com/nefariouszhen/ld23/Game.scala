@@ -116,7 +116,6 @@ class Game extends Canvas with Runnable {
     world.addPlayer(player)
   }
 
-  var (xa, ya) = (world.dimension * 8 - screen.w/2, world.dimension * 8 - screen.h/2)
   def tick() {
     if (!hasFocus) {
       input.releaseAll()
@@ -126,16 +125,8 @@ class Game extends Canvas with Runnable {
     input.tick()
     world.tick()
 
-    if (input.left.down) xa -= 10
-    if (input.right.down) xa += 10
-    if (input.down.down) ya += 10
-    if (input.up.down) ya -= 10
-
     if (input.regen.down) {
       input.regen.down = false
-
-      xa = world.dimension * 8 - screen.w/2
-      ya = world.dimension * 8 - screen.h/2
       resetGame()
     }
   }
@@ -144,8 +135,9 @@ class Game extends Canvas with Runnable {
     val bs = getBufferStrategy
     val g = bs.getDrawGraphics
 
-    world.renderBackground(screen, xa, ya)
-    world.renderSprites(screen, xa, ya)
+    val (xo, yo) = (player.x - screen.w/2, player.y - screen.h/2)
+    world.renderBackground(screen, xo, yo)
+    world.renderSprites(screen, xo, yo)
 
     for (y <- 0 until screen.h; x <- 0 until screen.w) {
       pixels(x + y * WIDTH) = screen.pixels(x + y * screen.w)

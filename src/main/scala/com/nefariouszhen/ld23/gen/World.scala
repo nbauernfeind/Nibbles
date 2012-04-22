@@ -6,7 +6,6 @@ import com.nefariouszhen.ld23.graphics.Screen
 import java.util.ArrayList
 import scala.collection.JavaConversions._
 import com.nefariouszhen.ld23.entity.{Player, Entity}
-import collection.IterableProxy
 
 sealed trait Direction
 object Direction {
@@ -116,8 +115,8 @@ class World(val size: Int = 8) {
     }
 
     for (e <- entities) {
-      e.tick()
       val s = e.getPos
+      e.tick()
 
       if (e.removed) {
         remove(e)
