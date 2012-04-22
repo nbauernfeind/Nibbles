@@ -168,7 +168,7 @@ class World(val size: Int = 8) {
 
   def renderFogOfWar(screen: Screen, player: Player, xScroll: Int, yScroll: Int) {
     val p = Point.toPoint(xScroll, yScroll)
-    val sz = Point.toPoint(screen.w + 15, screen.h + 15)
+    val sz = Point.toPoint(screen.w + 16, screen.h + 16)
 
     screen.offset = (xScroll, yScroll)
     val (ppx, ppy) = (player.x - player.x % 8 + 4, player.y - player.y % 8 + 4)

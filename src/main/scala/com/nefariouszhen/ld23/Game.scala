@@ -2,7 +2,7 @@ package com.nefariouszhen.ld23
 
 import entity.Player
 import gen.World
-import graphics.{SpriteSheet, Screen}
+import graphics.{Font, SpriteSheet, Screen}
 import sound.SoundLoop
 import java.awt.image.{DataBufferInt, BufferedImage}
 import javax.swing.JFrame
@@ -141,9 +141,15 @@ class Game extends Canvas with Runnable {
     val g = bs.getDrawGraphics
 
     val (xo, yo) = (player.x - screen.w / 2, player.y - screen.h / 2)
+    for (y <- 0 until screen.h; x <- 0 until screen.w) {
+      screen.pixels(x + y * screen.w) = 0xffffff
+    }
     world.renderBackground(screen, xo, yo)
     world.renderSprites(screen, xo, yo)
     world.renderFogOfWar(screen, player, xo, yo)
+
+    Font.draw("Nibble Beta", screen, 0, 0)
+    Font.draw("abcdefghijklmnopqrstuvwxyz0123456789()<>", screen, 0, 8)
 
     for (y <- 0 until screen.h; x <- 0 until screen.w) {
       pixels(x + y * WIDTH) = screen.pixels(x + y * screen.w)
@@ -151,9 +157,7 @@ class Game extends Canvas with Runnable {
 
     // Display Image
     g.fillRect(0, 0, getWidth, getHeight)
-
-    val (ww, hh) = (getWidth * SCALE, getHeight * SCALE)
-    g.drawImage(image, (getWidth - ww) / 2, (getHeight - hh) / 2, ww, hh, null)
+    g.drawImage(image, 0, 0, getWidth, getHeight, null)
 
     g.dispose()
     bs.show()
