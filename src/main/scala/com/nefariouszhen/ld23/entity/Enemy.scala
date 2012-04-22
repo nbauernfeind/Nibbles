@@ -5,14 +5,18 @@ import genome._
 
 class Enemy(world: World, lvl: Int) extends Mob(world) {
   val bankSz = 3 + lvl
+
+  val shapeGen = List(
+    () => new MiniBlob,
+    () => new TallBlob,
+    () => new GiganticBlob
+  )
+
   val bank = new MemoryBank(bankSz, generateAlgos(bankSz))
 
   def generateAlgos(_sz: Int): List[Algorithm] = {
     var sz = _sz
-    val shape = ChangeShape (rand.nextInt(2) match {
-      case 0 => new MiniBlob
-      case 1 => new TallBlob
-    })
+    val shape = ChangeShape(shapeGen(rand.nextInt(shapeGen.size))())
     sz -= shape.sz
 
     val color = ChangeColor(rand.nextInt())

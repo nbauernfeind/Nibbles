@@ -48,9 +48,7 @@ trait Shape {
   }
 
   def renderFrame(screen: Screen, mob: Mob, t: Int) {
-    for (h <- 0 until si.h; w <- 0 until si.w) {
-      screen.render(mob.x - 4 + w * 8, mob.y - 4 - h * 8, si.offset + t * si.w - h * 20, 0, mob.getColor)
-    }
+    screen.renderSprite(mob.x, mob.y, si, mob.getColor, t)
   }
 }
 
@@ -101,6 +99,7 @@ class JumpingShape(val xr: Int, val yr: Int, val si: SpriteInfo, jumpInterval: I
 }
 
 class Nibble extends TwoStepShape(3, 3, SpriteInfo(0, 3, 1, 1), 4)
-class MiniBlob extends JumpingShape(3, 2, SpriteInfo(2, 3, 1, 1), 10, 10)
-class TallBlob extends JumpingShape(3, 3, SpriteInfo(4, 3, 1, 2), 10, 10)
+class MiniBlob extends JumpingShape(3, 2, SpriteInfo(2, 3, 1, 1), 10, 5)
+class TallBlob extends JumpingShape(3, 3, SpriteInfo(4, 3, 1, 2), 15, 10)
+class GiganticBlob extends JumpingShape(7, 6, SpriteInfo(6, 3, 2, 2), 20, 15)
 
