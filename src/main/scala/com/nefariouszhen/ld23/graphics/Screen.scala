@@ -19,7 +19,7 @@ class Screen(val w: Int, val h: Int, sheet: SpriteSheet) {
     }
   }
 
-  def render(_xp: Int, _yp: Int, tile: Int, bits: Int) {
+  def render(_xp: Int, _yp: Int, tile: Int, bits: Int, color: Int = 0xffffff) {
     val xp = _xp - offset._1
     val yp = _yp - offset._2
 
@@ -41,13 +41,31 @@ class Screen(val w: Int, val h: Int, sheet: SpriteSheet) {
               if (idx >= pixels.length) {
                 println("x %d xp %d y %d yp %d idx %d ttl %d".format(x, xp, y, yp, idx, pixels.length))
               } else {
-                pixels((x + xp) + (y + yp) * w) = c
+                pixels((x + xp) + (y + yp) * w) = applyColor(c, color)
               }
             }
           }
         }
       }
     }
+  }
+
+  def applyColor(o: Int, c: Int): Int = {
+    val rp = (c & 0xff0000).toDouble / 0xff0000
+    val gp = (c & 0x00ff00).toDouble / 0x00ff00
+    val bp = (c & 0x0000ff).toDouble / 0x0000ff
+    applyColor(o, rp, gp, bp)
+  }
+
+  def applyColor(o: Int, p: Double): Int = {
+    applyColor(o, p, p, p)
+  }
+
+  def applyColor(o: Int, rp: Double, gp: Double, bp: Double): Int = {
+    val r = ((o & 0xff0000) * rp).toLong & 0xff0000
+    val g = ((o & 0x00ff00) * gp).toLong & 0x00ff00
+    val b = ((o & 0x0000ff) * bp).toLong & 0x0000ff
+    (r|g|b).toInt
   }
 
   def darken(_xp: Int, _yp: Int, percent: Double) {
@@ -57,11 +75,8 @@ class Screen(val w: Int, val h: Int, sheet: SpriteSheet) {
       if (y + yp >= 0 && y + yp < h) {
         for (x <- 0 until 8) {
           if (x + xp >= 0 && x + xp < w) {
-            val c = pixels((x + xp) + (y + yp) * w).toLong
-            val r = ((c & 0xff0000) * percent).toLong & 0xff0000
-            val g = ((c & 0x00ff00) * percent).toLong & 0x00ff00
-            val b = ((c & 0x0000ff) * percent).toLong & 0x0000ff
-            pixels((x + xp) + (y + yp) * w) = (r|g|b).toInt
+            val c = pixels((x + xp) + (y + yp) * w)
+            pixels((x + xp) + (y + yp) * w) = applyColor(c, percent)
           }
         }
       }

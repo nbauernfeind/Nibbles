@@ -1,11 +1,15 @@
 package com.nefariouszhen.ld23.entity
 
+import genome.Shape
 import util.Random
 import com.nefariouszhen.ld23.gen.{Direction, World}
+import com.nefariouszhen.ld23.graphics.Screen
 
 abstract class Mob(world: World) extends Entity(world) {
-  xr = 4
-  yr = 3
+  def getShape: Shape
+  def getColor: Int
+  def xr = getShape.xr
+  def yr = getShape.yr
 
   val rand = new Random()
   var walkDist = 0
@@ -32,5 +36,9 @@ abstract class Mob(world: World) extends Entity(world) {
       dir = Direction.toDirection(xa, ya)
     }
     super.move(xa, ya)
+  }
+
+  def render(screen: Screen) {
+    getShape.render(screen, this)
   }
 }

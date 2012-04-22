@@ -5,8 +5,10 @@ import com.nefariouszhen.ld23.gen.{World, Point}
 
 abstract class Entity(world: World) {
   var (x, y) = (0, 0)
-  var (xr, yr) = (6, 6)
   var removed = false
+
+  def xr: Int
+  def yr: Int
 
   def render(screen: Screen)
   def tick() {}
