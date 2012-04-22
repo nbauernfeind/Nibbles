@@ -28,7 +28,7 @@ abstract class Mob(val world: World) extends Entity(world) {
 
   def sightR2() = {
     val sr = getSightR
-    ((16 * sr + 1) * (16 * sr + 1)).toInt
+    ((4 * sr + 1) * (4 * sr + 1)).toInt
   }
 
   def distToPlayer: Tuple2[Int, Int] = {

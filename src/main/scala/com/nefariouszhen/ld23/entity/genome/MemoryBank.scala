@@ -21,19 +21,19 @@ case class ChangeColor(col: Int) extends AestheticAlgorithm
 sealed trait StatAlgorithm extends Algorithm
 
 case class SpeedBoost(speed: Int) extends StatAlgorithm {
-  val sz = math.min(1, speed - 2)
+  val sz = math.max(1, speed - 2)
 }
 
 case class SightBoost(sight: Int) extends StatAlgorithm {
-  val sz = math.min(1, sight * sight / 2)
+  val sz = math.max(1, sight - 1)
 }
 
 case class ArmorBoost(armor: Int) extends StatAlgorithm {
-  val sz = math.min(1, armor / 2)
+  val sz = math.max(1, armor / 2)
 }
 
 case class AttackBoost(attack: Int) extends StatAlgorithm {
-  val sz = math.min(1, attack)
+  val sz = math.max(1, attack)
 }
 
 case class HealthBoost(health: Int) extends StatAlgorithm {

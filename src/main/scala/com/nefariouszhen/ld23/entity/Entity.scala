@@ -43,7 +43,7 @@ abstract class Entity(world: World) {
     val p1 = Point.toPoint(x + xr - 1, y + yr - 1)
 
     val t0 = Point.toPoint(x + xa - xr, y + ya - yr)
-    val t1 = Point.toPoint(x + xa + xr + 1, y + ya + yr + 1)
+    val t1 = Point.toPoint(x + xa + xr - 1, y + ya + yr - 1)
 
     for (y <- t0.y to t1.y; x <- t0.x to t1.x) {
         val p = Point(x,y)
