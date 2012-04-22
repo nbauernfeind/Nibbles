@@ -33,10 +33,17 @@ trait Shape {
       case p: Player => playerTick(p)
     }
 
-    val g = 1 << math.max(0, 3 - mob.getSpeed)
-    val m = 1 << math.max(0, mob.getSpeed - 3)
-    if (mob.tickTime % g == 0) {
-      mob.move(xa * m, ya * m)
+    var s = math.min(15, mob.getSpeed)
+    var m = 1
+    while (s > 0) {
+      val r = 8 / m
+      val i = s / r
+
+      if (i > 0 && mob.tickTime % m == 0)
+        mob.move(xa, ya)
+
+      s %= r
+      m += 1
     }
   }
 
@@ -75,7 +82,7 @@ class JumpingShape(val xr: Int, val yr: Int, val si: SpriteInfo, jumpInterval: I
   }
 
   override def tick(mob: Mob) {
-    jumpTime -= mob.getSpeed
+    jumpTime -= (math.min(15,mob.getSpeed)) / 8 + 1
     if (jumpTime <= 0) {
       xa = 0
       ya = 0

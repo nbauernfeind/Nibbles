@@ -176,8 +176,9 @@ class World(val size: Int = 8) {
     val sz = Point.toPoint(screen.w + 15, screen.h + 15)
 
     screen.offset = (xScroll, yScroll)
+    val (ppx, ppy) = (player.x - player.x % 8 + 4, player.y - player.y % 8 + 4)
     for (y <- 16 * p.y to 16 * (sz.y + p.y) by 8; x <- 16 * p.x to 16 * (sz.x + p.x) by 8) {
-      val dd = List(player.x - x - 4, player.y - y - 4).map(x => x * x).sum
+      val dd = List(ppx - x - 4, ppy - y - 4).map(x => x * x).sum
       if (x >= 0 && x < 16 * dimension && y >= 0 && y < 16 * dimension) {
         val percent = if (dd <= player.sightR2) {
           md(x >> 3)(y >> 3) |= World.MD_SEEN_BIT
