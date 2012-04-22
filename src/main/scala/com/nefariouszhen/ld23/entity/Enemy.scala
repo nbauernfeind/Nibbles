@@ -1,7 +1,7 @@
 package com.nefariouszhen.ld23.entity
 
-import com.nefariouszhen.ld23.gen.World
 import genome._
+import com.nefariouszhen.ld23.gen.{Direction, World}
 
 class Enemy(world: World, lvl: Int) extends Mob(world) {
   val bankSz = 3 + lvl

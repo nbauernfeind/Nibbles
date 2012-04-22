@@ -183,6 +183,11 @@ class Game extends Canvas with Runnable {
   def renderGui() {
     Font.draw("Nibble Beta", screen, 0, 0)
 
+    for (i <- 0 until player.getMaxHealth) {
+      val c = if (player.health > i) 0xff0000 else 0xcccccc
+      screen.render(i * 8 + 4, screen.h - 8 - 4, 11 * 20, 0, c)
+    }
+
     menu.foreach(_.render(screen))
   }
 
@@ -192,7 +197,7 @@ class Game extends Canvas with Runnable {
     var c = if ((tickCnt >> 4) % 2 == 0) 0xcccccc else 0xffffff
     val x = (screen.w - msg.length * 8) / 2
     val y = (screen.h - 8) / 2
-    Font.renderFrame(screen, "", (x - 16)/8, (y - 16)/8, (x + msg.length * 8 + 8)/8, (y + 8 + 16)/8)
+    Font.renderFrame(screen, "", (x - 16) / 8, (y - 16) / 8, (x + msg.length * 8 + 8) / 8, (y + 8 + 16) / 8)
     Font.draw(msg, screen, x, y, c)
   }
 

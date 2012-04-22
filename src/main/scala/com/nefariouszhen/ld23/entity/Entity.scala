@@ -1,9 +1,12 @@
 package com.nefariouszhen.ld23.entity
 
 import com.nefariouszhen.ld23.graphics.Screen
-import com.nefariouszhen.ld23.gen.{World, Point}
+import util.Random
+import com.nefariouszhen.ld23.gen.{Direction, World, Point}
 
 abstract class Entity(world: World) {
+  val rand = new Random()
+
   var (x, y) = (0, 0)
   var removed = false
 
@@ -12,6 +15,7 @@ abstract class Entity(world: World) {
 
   def render(screen: Screen)
   def tick() {}
+  def hurt(mob: Mob, damage: Int, dir: Direction) {}
 
   def getPos = Point(x >> 4, y >> 4)
 
@@ -38,7 +42,7 @@ abstract class Entity(world: World) {
     !(x + xr < x0 || y + yr < y0 || x - xr > x1 || y - yr > y1)
   }
 
-  private[this] def move2(xa: Int, ya: Int): Boolean = {
+  protected[this] def move2(xa: Int, ya: Int): Boolean = {
     val p0 = Point.toPoint(x - xr, y - yr)
     val p1 = Point.toPoint(x + xr - 1, y + yr - 1)
 

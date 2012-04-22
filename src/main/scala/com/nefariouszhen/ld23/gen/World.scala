@@ -99,7 +99,7 @@ class World(val size: Int = 8) {
   private[this] var player: Player = null
   def getPlayer = player
 
-  private[this] def add(entity: Entity) {
+  def add(entity: Entity) {
     entities.add(entity)
     insertEntity(entity.getPos, entity)
   }
@@ -125,12 +125,16 @@ class World(val size: Int = 8) {
       getTile(p).tick(this, p)
     }
 
-    for (e <- entities) {
+    var i = 0
+    while (i < entities.size) {
+      val e = entities.get(i)
       val s = e.getPos
       e.tick()
 
       if (e.removed) {
-        remove(e)
+        entities.remove(i)
+        i -= 1
+        removeEntity(s, e)
       } else {
         val t = e.getPos
         if (s != t) {
@@ -138,6 +142,8 @@ class World(val size: Int = 8) {
           insertEntity(t, e)
         }
       }
+
+      i += 1
     }
   }
 
@@ -223,7 +229,7 @@ class World(val size: Int = 8) {
     false
   }
 
-  private[this] def getEntities(x0: Int, y0: Int, x1: Int, y1: Int): Iterable[Entity] = {
+  def getEntities(x0: Int, y0: Int, x1: Int, y1: Int): Iterable[Entity] = {
     import Direction._
     val p0 = Point.toPoint(x0, y0).move(NORTH).move(EAST)
     val p1 = Point.toPoint(x1, y1).move(SOUTH).move(WEST)
