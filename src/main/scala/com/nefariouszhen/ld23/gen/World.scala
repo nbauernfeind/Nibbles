@@ -3,6 +3,10 @@ package com.nefariouszhen.ld23.gen
 import tile.Tile
 import util.Random
 import com.nefariouszhen.ld23.graphics.Screen
+import java.util.ArrayList
+import scala.collection.JavaConversions._
+import com.nefariouszhen.ld23.entity.{Player, Entity}
+import collection.IterableProxy
 
 sealed trait Direction
 object Direction {
@@ -20,6 +24,11 @@ object Direction {
     else if (dy > 0) SOUTH
     else NORTH
   }
+}
+
+object Point {
+  def toPoint(xScroll: Int, yScroll: Int) = Point(xScroll >> 4, yScroll >> 4)
+  def nextPoint(r: Random, w: Int, h: Int) = Point(r.nextInt(w), r.nextInt(h))
 }
 
 case class Point(x: Int, y: Int) {
@@ -40,6 +49,16 @@ case class Point(x: Int, y: Int) {
     } else {
       Direction.SOUTH
     }
+  }
+
+  def getNeighbors:Iterable[Point] = {
+    Direction.values.map(this.move _)
+  }
+
+  def getDiagonals:Iterable[Point] = {
+    import Direction._
+    val dirs = List((NORTH,EAST),(NORTH,WEST),(SOUTH,EAST),(SOUTH,WEST))
+    dirs.map { case (a,b) => this.move(a).move(b) }
   }
 }
 
@@ -62,25 +81,85 @@ class World(val size: Int = 8) {
   val dimension = 1 << size
   private[this] val rand = new Random()
   private[this] val m = Array.ofDim[Tile](dimension, dimension)
+  private[this] val entitiesByTile = Array.ofDim[ArrayList[Entity]](dimension, dimension)
+  private[this] val entities = new ArrayList[Entity]()
 
   def getTile(p: Point): Tile = if (!checkDimensions(p)) Tile.UNKNOWN else m(p.x)(p.y)
+  private[this] def getSprites(p: Point): ArrayList[Entity] = if (!checkDimensions(p)) new ArrayList[Entity]() else entitiesByTile(p.x)(p.y)
 
-  generate()
+  def addPlayer(player: Player) {
+    add(player)
+  }
+
+  private[this] def add(entity: Entity) {
+    entities.add(entity)
+    insertEntity(entity.getPos, entity)
+  }
+
+  private[this] def remove(entity: Entity) {
+    entities.remove(entity)
+    removeEntity(entity.getPos, entity)
+  }
+
+  private[this] def insertEntity(p: Point, entity: Entity) {
+    getSprites(p).add(entity)
+  }
+
+  private[this] def removeEntity(p: Point, entity: Entity) {
+    getSprites(p).remove(entity)
+  }
+
+  def tick() {
+    for (i <- 0 until dimension * dimension / 64) {
+      val p = Point.nextPoint(rand, dimension, dimension)
+      getTile(p).tick(this, p)
+    }
+
+    for (e <- entities) {
+      e.tick()
+      val s = e.getPos
+
+      if (e.removed) {
+        remove(e)
+      } else {
+        val t = e.getPos
+        if (s != t) {
+          removeEntity(s, e)
+          insertEntity(t, e)
+        }
+      }
+    }
+  }
 
   def renderBackground(screen: Screen, xScroll: Int, yScroll: Int) {
-    val (xo, yo) = (xScroll >> 4, yScroll >> 4)
-    val (w, h) = ((screen.w + 15) >> 4, (screen.h + 15) >> 4)
-    screen.offset = Point(xScroll, yScroll)
-    for (y <- yo to h + yo; x <- xo to w + xo) {
-      val p = Point(x, y)
-      getTile(p).render(screen, this, p)
+    val p = Point.toPoint(xScroll, yScroll)
+    val sz = Point.toPoint(screen.w + 15, screen.h + 15)
+    screen.offset = (xScroll, yScroll)
+    for (y <- p.y to sz.y + p.y; x <- p.x to sz.x + p.x) {
+      val np = Point(x, y)
+      getTile(np).render(screen, this, np)
     }
-    screen.offset = Point(0, 0)
+    screen.offset = (0, 0)
+  }
+
+  def renderSprites(screen: Screen, xScroll: Int, yScroll: Int) {
+    val p = Point.toPoint(xScroll, yScroll)
+    val sz = Point.toPoint(screen.w + 15, screen.h + 15)
+
+    screen.offset = (xScroll, yScroll)
+    for (y <- p.y to sz.y + p.y) {
+      val sprites = for (x <- p.x to sz.x + p.x) yield {
+        getSprites(Point(x, y))
+      }
+      sprites.flatten.sortBy(_.y).foreach(_.render(screen))
+    }
+    screen.offset = (0, 0)
   }
 
   def generate() {
     for (i <- 0 until dimension; j <- 0 until dimension) {
       m(i)(j) = Tile.EMPTY
+      entitiesByTile(i)(j) = new ArrayList[Entity]()
     }
 
     createRoom(Point(dimension >> 1, dimension >> 1), 1000)
@@ -135,7 +214,8 @@ class World(val size: Int = 8) {
       for (l <- 0 until len) {
         if (checkDimensions(p)) {
           m(p.x)(p.y) = Tile.FLOOR
-          Direction.values.map(p.move _).filter(_ != p).foreach(setToWallIfEmpty _)
+          p.getNeighbors.foreach(setToWallIfEmpty _)
+          p.getDiagonals.foreach(setToWallIfEmpty _)
           buildCorridor = false
         } else {
           buildCorridor = true

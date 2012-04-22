@@ -1,6 +1,5 @@
 package com.nefariouszhen.ld23.graphics
 
-import com.nefariouszhen.ld23.gen.Point
 
 object Screen {
   val BIT_MIRROR_X = 0x01
@@ -12,7 +11,7 @@ class Screen(val w: Int, val h: Int, sheet: SpriteSheet) {
   import Screen._
 
   val pixels = Array.ofDim[Int](w * h)
-  var offset = Point(0, 0)
+  var offset = Tuple2(0, 0)
 
   def fill(color: Int) {
     for (i <- 0 until pixels.length) {
@@ -21,8 +20,8 @@ class Screen(val w: Int, val h: Int, sheet: SpriteSheet) {
   }
 
   def render(_xp: Int, _yp: Int, tile: Int, bits: Int) {
-    val xp = _xp - offset.x
-    val yp = _yp - offset.y
+    val xp = _xp - offset._1
+    val yp = _yp - offset._2
 
     val mirrorX = (bits & BIT_MIRROR_X) > 0;
     val mirrorY = (bits & BIT_MIRROR_Y) > 0;
@@ -36,8 +35,8 @@ class Screen(val w: Int, val h: Int, sheet: SpriteSheet) {
             val xs = if (mirrorX) 7 - x else x
             val c = sheet.pixels(xs + ys * sheet.width + toffs);
 
-            // if not transparent color:
-            if (c != 0xb4e55e) {
+            // Heh, transparent booger green
+            if ((c & 0xffffff) != 0xb4e55e) {
               val idx = x + xp + (y + yp) * w
               if (idx >= pixels.length) {
                 println("x %d xp %d y %d yp %d idx %d ttl %d".format(x, xp, y, yp, idx, pixels.length))

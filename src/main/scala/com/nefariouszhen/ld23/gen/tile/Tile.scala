@@ -8,6 +8,7 @@ sealed trait Tile {
   def render(screen: Screen, world: World, p: Point)
   def mayPass(world: World, p: Point, e: Entity): Boolean
   def steppedOn(world: World, p: Point, e: Entity)
+  def tick(world: World, p: Point)
 }
 
 object Tile {
@@ -36,6 +37,8 @@ abstract class SimpleTile(ta: Int, tb: Int, tc: Int, td: Int) extends Tile {
   }
 
   def steppedOn(world: World, p: Point, e: Entity) {}
+
+  def tick(world: World, p: Point) {}
 }
 
 class EmptyTile() extends SimpleTile(0,1,20,21) {
