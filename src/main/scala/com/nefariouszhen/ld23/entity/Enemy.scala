@@ -8,8 +8,14 @@ class Enemy(world: World, lvl: Int) extends Mob(world) {
 
   val shapeGen = List(
     () => new MiniBlob,
+    () => new MiniBlob,
+    () => new MiniBlob,
     () => new TallBlob,
-    () => new GiganticBlob
+    () => new TallBlob,
+    () => new GiganticBlob,
+    () => new Spinner,
+    () => new Spinner,
+    () => new Spinner
   )
 
   val bank = new MemoryBank(bankSz, generateAlgos(bankSz))

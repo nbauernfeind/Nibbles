@@ -61,6 +61,43 @@ class TwoStepShape(val xr: Int, val yr: Int, val si: SpriteInfo, speedShift: Int
   def enemyTick(mob: Mob) {}
 }
 
+class SpinShape(val xr: Int, val yr: Int, val si: SpriteInfo, speedShift: Int, spinInterval: Int, restInterval: Int) extends Shape {
+  var spinTime = 0
+
+  def render(screen: Screen, mob: Mob) {
+    val t = if (spinTime > 0) (mob.tickTime >> speedShift) & 1 else 0
+    renderFrame(screen, mob, t)
+  }
+
+  def enemyTick(mob: Mob) {
+    if (mob.rand.nextInt(10) == 0 && spinTime <= -restInterval) {
+      xa = mob.rand.nextInt(3) - 1
+      ya = mob.rand.nextInt(3) - 1
+
+      val (dx, dy) = mob.distToPlayer
+      if ((dx * dx + dy * dy) < mob.sightR2) {
+        if (dx < 0) xa = -1
+        if (dx > 0) xa = +1
+        if (dy < 0) ya = -1
+        if (dy > 0) ya = +1
+      }
+    }
+  }
+
+  override def tick(mob: Mob) {
+    spinTime -= (math.min(15, mob.getSpeed)) / 8 + 1
+    if (spinTime <= 0) {
+      xa = 0
+      ya = 0
+    }
+
+    super.tick(mob)
+
+    if (spinTime < 0 && (xa != 0 || ya != 0))
+      spinTime = spinInterval
+  }
+}
+
 class JumpingShape(val xr: Int, val yr: Int, val si: SpriteInfo, jumpInterval: Int, restInterval: Int) extends Shape {
   var jumpTime = 0
 
@@ -80,7 +117,7 @@ class JumpingShape(val xr: Int, val yr: Int, val si: SpriteInfo, jumpInterval: I
   }
 
   override def tick(mob: Mob) {
-    jumpTime -= (math.min(15,mob.getSpeed)) / 8 + 1
+    jumpTime -= (math.min(15, mob.getSpeed)) / 8 + 1
     if (jumpTime <= 0) {
       xa = 0
       ya = 0
@@ -102,4 +139,4 @@ class Nibble extends TwoStepShape(3, 3, SpriteInfo(0, 3, 1, 1), 4)
 class MiniBlob extends JumpingShape(3, 2, SpriteInfo(2, 3, 1, 1), 10, 5)
 class TallBlob extends JumpingShape(3, 3, SpriteInfo(4, 3, 1, 2), 15, 10)
 class GiganticBlob extends JumpingShape(7, 6, SpriteInfo(6, 3, 2, 2), 20, 15)
-
+class Spinner extends SpinShape(3, 3, SpriteInfo(0, 2, 1, 1), 2, 20, 1)
