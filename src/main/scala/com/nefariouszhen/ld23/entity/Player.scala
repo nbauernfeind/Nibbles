@@ -1,23 +1,24 @@
 package com.nefariouszhen.ld23.entity
 
 import com.nefariouszhen.ld23.{Game, InputHandler}
-import genome.{MiniBlob, Nibble}
+import genome.{TallBlob, MiniBlob, Nibble}
 
 class Player(game: Game, val input: InputHandler) extends Mob(game.world) {
   val tile = 60
 //  val getShape = new Nibble()
-  val getShape = new MiniBlob()
+  val tmpPossibleShapes = List(new Nibble, new MiniBlob, new TallBlob)
+  var shapeIdx = 0
+  def getShape = tmpPossibleShapes(shapeIdx)
   val getColor = 0x00FF00
-  val getSpeed = 1
+  var getSpeed = 1
 
-//  override def tick() {
-//    super.tick()
-//
-//    var (dx, dy) = (0, 0)
-//    if (input.up.down) dy -= 1
-//    if (input.down.down) dy += 1
-//    if (input.left.down) dx -= 1
-//    if (input.right.down) dx += 1
-//    move(dx, dy)
-//  }
+  override def tick() {
+    super.tick()
+
+    if (input.tab.down) {
+      input.tab.down = false
+      shapeIdx = (shapeIdx + 1) % tmpPossibleShapes.size
+      getSpeed += 1
+    }
+  }
 }

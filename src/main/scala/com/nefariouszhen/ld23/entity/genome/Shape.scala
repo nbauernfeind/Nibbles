@@ -3,26 +3,63 @@ package com.nefariouszhen.ld23.entity.genome
 import com.nefariouszhen.ld23.graphics.Screen
 import com.nefariouszhen.ld23.entity.{Enemy, Player, Mob}
 
+case class SpriteInfo(ox: Int, oy: Int, w: Int, h: Int) {
+  def offset = ox + oy * 20
+}
+
 trait Shape {
+  var (xa, ya) = (0, 0)
+
+  def si: SpriteInfo
   def xr: Int
   def yr: Int
   def render(screen: Screen, mob: Mob)
-  def tick(mob: Mob)
-}
 
-class TwoStepShape(val xr: Int, val yr: Int, spriteOffset: Int, speedShift: Int) extends Shape {
-  def render(screen: Screen, mob: Mob) {
-    screen.render(mob.x - 4, mob.y - 4, ((mob.walkDist >> speedShift) & 1) + spriteOffset, 0, mob.getColor)
+  def enemyTick(mob: Mob)
+
+  def playerTick(p: Player) {
+    xa = 0
+    ya = 0
+
+    if (p.input.up.down) ya -= 1
+    if (p.input.down.down) ya += 1
+    if (p.input.left.down) xa -= 1
+    if (p.input.right.down) xa += 1
   }
 
-  def tick(mob: Mob) {}
+  def tick(mob: Mob) {
+    mob match {
+      case e: Enemy => enemyTick(mob)
+      case p: Player => playerTick(p)
+    }
+
+    val g = 1 << math.max(0, 3 - mob.getSpeed)
+    val m = 1 << math.max(0, mob.getSpeed - 3)
+    if (mob.tickTime % g == 0) {
+      mob.move(xa * m, ya * m)
+    }
+  }
+
+  def renderFrame(screen: Screen, mob: Mob, t: Int) {
+    for (h <- 0 until si.h; w <- 0 until si.w) {
+      screen.render(mob.x - 4 + w * 8, mob.y - 4 - h * 8, si.offset + t * si.w - h * 20, 0, mob.getColor)
+    }
+  }
 }
 
-class JumpingShape(val xr: Int, val yr: Int, spriteOffset: Int, jumpInterval: Int, restInterval: Int) extends Shape {
-  var (xa, ya) = (0, 0)
+class TwoStepShape(val xr: Int, val yr: Int, val si: SpriteInfo, speedShift: Int) extends Shape {
+  def render(screen: Screen, mob: Mob) {
+    val t = ((mob.walkDist) >> speedShift) & 1
+    renderFrame(screen, mob, t)
+  }
+
+  def enemyTick(mob: Mob) {}
+}
+
+class JumpingShape(val xr: Int, val yr: Int, val si: SpriteInfo, jumpInterval: Int, restInterval: Int) extends Shape {
   var jumpTime = 0
 
-  def enemyMoveLogic(mob: Mob) {
+  def enemyTick(mob: Mob) {
     if (mob.rand.nextInt(40) == 0 && jumpTime <= -restInterval) {
       xa = mob.rand.nextInt(3) - 1
       ya = mob.rand.nextInt(3) - 1
@@ -37,36 +74,26 @@ class JumpingShape(val xr: Int, val yr: Int, spriteOffset: Int, jumpInterval: In
     }
   }
 
-  def playerMoveLogic(p: Player) {
-    if (p.input.up.down) ya = -1
-    if (p.input.down.down) ya = 1
-    if (p.input.left.down) xa = -1
-    if (p.input.right.down) xa = 1
-  }
-
-  def tick(mob: Mob) {
-    mob match {
-      case e: Enemy => enemyMoveLogic(mob)
-      case p: Player => playerMoveLogic(p)
-    }
-
-    if (jumpTime < 0 && (xa != 0 || ya != 0))
-      jumpTime = jumpInterval
-
-    mob.move(xa * mob.getSpeed, ya * mob.getSpeed)
-
+  override def tick(mob: Mob) {
     jumpTime -= mob.getSpeed
     if (jumpTime <= 0) {
       xa = 0
       ya = 0
     }
+
+    super.tick(mob)
+
+    if (jumpTime < -restInterval && (xa != 0 || ya != 0))
+      jumpTime = jumpInterval
   }
 
   def render(screen: Screen, mob: Mob) {
     val t = if (jumpTime > 0) 1 else 0
-    screen.render(mob.x - 4, mob.y - 4, t + spriteOffset, 0, mob.getColor)
+    renderFrame(screen, mob, t)
   }
 }
 
-class Nibble extends TwoStepShape(3, 3, 0 + 3 * 20, 4)
-class MiniBlob extends JumpingShape(3, 2, 2 + 3 * 20, 10, 10)
+class Nibble extends TwoStepShape(3, 3, SpriteInfo(0, 3, 1, 1), 4)
+class MiniBlob extends JumpingShape(3, 2, SpriteInfo(2, 3, 1, 1), 10, 10)
+class TallBlob extends JumpingShape(3, 3, SpriteInfo(4, 3, 1, 2), 10, 10)
+
