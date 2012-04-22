@@ -3,8 +3,13 @@ package com.nefariouszhen.ld23.sound
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.sound.sampled.{Clip, FloatControl, AudioSystem}
 
+trait SoundLoop {
+  def startPlaying()
+  def stopPlaying()
+}
+
 object SoundLoop {
-  val BG_LOOP = new SoundLoop("/ld_bg_loop.wav")
+  val BG_LOOP: SoundLoop = new SoundLoopImpl("/ld_bg_loop.wav")
 
   def stopPlaying() {
     List(BG_LOOP).foreach(_.stopPlaying())
@@ -12,7 +17,7 @@ object SoundLoop {
 }
 
 // Start/Transition/Stop Duration (all different) Min/Max probably fixed.
-class SoundLoop(name: String, min: Float = -20.0f, max: Float = -05.0f, durationInMs: Int = 2200) {
+private class SoundLoopImpl(name: String, min: Float = -20.0f, max: Float = -05.0f, durationInMs: Int = 2200) extends SoundLoop {
   private[this] val audio = AudioSystem.getAudioInputStream(this.getClass.getResource(name))
   private[this] val playing = new AtomicBoolean(false)
 
@@ -38,7 +43,7 @@ class SoundLoop(name: String, min: Float = -20.0f, max: Float = -05.0f, duration
 
           val stopTime = System.currentTimeMillis()
           while (volume.getValue > min + 0.001) {
-            volume.setValue(math.min(max, (max - min) / durationInMs * (durationInMs - (System.currentTimeMillis() - stopTime)) + min))
+            volume.setValue(math.min(max, (max - min) / (durationInMs / 4) * ((durationInMs / 4) - (System.currentTimeMillis() - stopTime)) + min))
             Thread.sleep(50)
           }
 

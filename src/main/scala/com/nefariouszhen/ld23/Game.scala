@@ -62,7 +62,7 @@ class Game extends Canvas with Runnable {
   }
 
   def run() {
-    val snd = new SoundLoop("/ld_bg_loop.wav")
+    val snd = SoundLoop.BG_LOOP
     snd.startPlaying()
 
     var lastTime = System.nanoTime()
