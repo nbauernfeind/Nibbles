@@ -62,8 +62,9 @@ class Game extends Canvas with Runnable {
   }
 
   def run() {
-    //    val snd = new SoundLoop("/ld_bg_loop.wav")
-    //    snd.startPlaying()
+    val snd = new SoundLoop("/ld_bg_loop.wav")
+    snd.startPlaying()
+
     var lastTime = System.nanoTime()
     var lastTimer = System.currentTimeMillis()
     var unprocessed = 0.0d
@@ -109,8 +110,8 @@ class Game extends Canvas with Runnable {
 
   def resetGame() {
     player = new Player(this, input)
-    player.x = world.dimension/2*16 + 4
-    player.y = world.dimension/2*16 + 4
+    player.x = world.dimension / 2 * 16 + 4
+    player.y = world.dimension / 2 * 16 + 4
 
     world.generate()
     world.addPlayer(player)
@@ -135,7 +136,7 @@ class Game extends Canvas with Runnable {
     val bs = getBufferStrategy
     val g = bs.getDrawGraphics
 
-    val (xo, yo) = (player.x - screen.w/2, player.y - screen.h/2)
+    val (xo, yo) = (player.x - screen.w / 2, player.y - screen.h / 2)
     world.renderBackground(screen, xo, yo)
     world.renderSprites(screen, xo, yo)
     world.renderFogOfWar(screen, player, xo, yo)

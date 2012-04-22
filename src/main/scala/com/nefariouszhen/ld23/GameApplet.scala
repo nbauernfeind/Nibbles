@@ -19,4 +19,9 @@ class GameApplet extends Applet {
   override def stop() {
     game.stop()
   }
+
+  override def destroy() {
+    super.destroy()
+    stop()
+  }
 }
