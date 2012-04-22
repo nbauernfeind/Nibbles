@@ -70,6 +70,7 @@ class Game extends Canvas with Runnable {
     Thread.sleep(500)
   }
 
+  var tickCnt = 0
   def run() {
     val snd = SoundLoop.BG(rand.nextInt(SoundLoop.BG.length))
     snd.startPlaying()
@@ -79,7 +80,6 @@ class Game extends Canvas with Runnable {
     var unprocessed = 0.0d
     var nsPerTick = 1.0e9 / 60
     var frames = 0
-    var ticks = 0
 
     init()
     resetGame()
@@ -91,7 +91,7 @@ class Game extends Canvas with Runnable {
       var shouldRender = true
 
       while (unprocessed >= 1) {
-        ticks += 1
+        tickCnt += 1
         tick()
         unprocessed -= 1
         shouldRender = true
@@ -105,9 +105,9 @@ class Game extends Canvas with Runnable {
 
       if (System.currentTimeMillis() - lastTimer > 1000) {
         lastTimer += 1000
-        println(ticks + " ticks, " + frames + " fps")
+        println(tickCnt + " ticks, " + frames + " fps")
         frames = 0
-        ticks = 0
+        tickCnt = 0
       }
     }
   }
@@ -165,6 +165,9 @@ class Game extends Canvas with Runnable {
 
     renderGui()
 
+    if (!hasFocus)
+      renderFocusGrabber()
+
     for (y <- 0 until screen.h; x <- 0 until screen.w) {
       pixels(x + y * WIDTH) = screen.pixels(x + y * screen.w)
     }
@@ -181,6 +184,16 @@ class Game extends Canvas with Runnable {
     Font.draw("Nibble Beta", screen, 0, 0)
 
     menu.foreach(_.render(screen))
+  }
+
+  def renderFocusGrabber() {
+    val msg = "Click to focus"
+
+    var c = if ((tickCnt >> 4) % 2 == 0) 0xcccccc else 0xffffff
+    val x = (screen.w - msg.length * 8) / 2
+    val y = (screen.h - 8) / 2
+    Font.renderFrame(screen, "", (x - 16)/8, (y - 16)/8, (x + msg.length * 8 + 8)/8, (y + 8 + 16)/8)
+    Font.draw(msg, screen, x, y, c)
   }
 
   def loadImgResource(name: String) = ImageIO.read(this.getClass.getResourceAsStream(name))

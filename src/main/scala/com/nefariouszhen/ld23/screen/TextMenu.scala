@@ -52,6 +52,7 @@ class AboutMenu(parent: Menu, game: Game, input: InputHandler) extends TextMenu(
     "",
     "",
     "",
-    "It was heavily inspired by Minicraft."
+    "It was heavily inspired by",
+    "Minicraft."
   )
 }

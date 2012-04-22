@@ -30,13 +30,14 @@ object Font {
       FrameTile(-1,y0,1,0),
       FrameTile(-1,y1,1,2),
       FrameTile(x0,-1,2,0),
-      FrameTile(x1,-1,2,1)
+      FrameTile(x1,-1,2,1),
+      FrameTile(-1,-1,3,0)
     )
 
     for (y <- y0 to y1; x <- x0 to x1) {
       frames.find(_.matches(x,y)) match {
         case Some(frame) => screen.render(x * 8, y * 8, frame.o + frameOffset, frame.f)
-        case None => screen.darken(x * 8, y * 8, 0x111111)
+        case None => println("Error making bground.")
       }
     }
   }
