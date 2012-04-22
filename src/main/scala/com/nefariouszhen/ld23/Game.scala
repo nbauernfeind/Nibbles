@@ -121,6 +121,11 @@ class Game extends Canvas with Runnable {
   }
 
   def tick() {
+    if (!this.isValid) {
+      stop()
+      return
+    }
+
     if (!hasFocus) {
       input.releaseAll()
       return
