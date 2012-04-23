@@ -1,10 +1,10 @@
 package com.nefariouszhen.ld23.entity
 
 import genome._
-import particle.TextParticle
 import com.nefariouszhen.ld23.gen.{Direction, World}
 import com.nefariouszhen.ld23.graphics.Screen
 import com.nefariouszhen.ld23.gen.Direction._
+import particle.{AttackParticle, TextParticle}
 
 abstract class Mob(val world: World) extends Entity(world) {
 
@@ -15,11 +15,12 @@ abstract class Mob(val world: World) extends Entity(world) {
   def getColor = bank.algos.collect({case ChangeColor(c) => c}).headOption.getOrElse(0)
   def getSpeed = 1 + bank.algos.collect({case SpeedBoost(s) => s}).sum
   def getSightR = bank.algos.collect({case SightBoost(s) => s}).sum
-  def getMaxHealth = bank.algos.collect({case HealthBoost(h) => h}).sum + 1
-  def getAttackDamage = bank.algos.collect({case AttackBoost(a) => a}).sum + 1
+  def getMaxHealth = 1 + bank.algos.collect({case HealthBoost(h) => h}).sum
+  def getAttackDamage = 1 + bank.algos.collect({case AttackBoost(a) => a}).sum
+  def getAttackRange = 2*(2 + bank.algos.collect({case AttackRangeBoost(a) => a}).sum)
 
-  def xr = getShape.xr
-  def yr = getShape.yr
+  override def xr = getShape.xr
+  override def yr = getShape.yr
 
   var walkDist = 0
   var dir: Direction = Direction.NORTH
@@ -57,7 +58,9 @@ abstract class Mob(val world: World) extends Entity(world) {
 
   protected def attack() {
     val yo = -2
-    val range = 20
+    val range = getAttackRange
+
+    world.add(new AttackParticle(this, world, range, dir))
 
     dir match {
       case NORTH => hurtEntities(x - 8, y - range + yo, x + 8, y - 4 + yo)

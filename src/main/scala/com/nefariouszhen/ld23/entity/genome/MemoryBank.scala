@@ -33,11 +33,15 @@ case class ArmorBoost(armor: Int) extends StatAlgorithm {
 }
 
 case class AttackBoost(attack: Int) extends StatAlgorithm {
-  val sz = math.max(1, attack)
+  val sz = attack
 }
 
 case class HealthBoost(health: Int) extends StatAlgorithm {
   val sz = health
+}
+
+case class AttackRangeBoost(range: Int) extends StatAlgorithm {
+  val sz = range / 2
 }
 
 sealed trait SpecialAlgorithm extends Algorithm {

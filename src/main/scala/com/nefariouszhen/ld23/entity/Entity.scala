@@ -10,8 +10,8 @@ abstract class Entity(world: World) {
   var (x, y) = (0, 0)
   var removed = false
 
-  def xr: Int
-  def yr: Int
+  def xr: Int = 0
+  def yr: Int = 0
 
   def render(screen: Screen)
   def tick() {}

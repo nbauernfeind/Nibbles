@@ -33,9 +33,6 @@ class TextParticle(world: World, msg: String, _x: Int, _y: Int, col: Int) extend
     y = yy.toInt
   }
 
-  def xr = 0
-  def yr = 0
-
   def render(screen: Screen) {
     Font.draw(msg, screen, x - msg.length * 4 + 1, y - zz.toInt + 1, 0)
     Font.draw(msg, screen, x - msg.length * 4, y - zz.toInt, col)

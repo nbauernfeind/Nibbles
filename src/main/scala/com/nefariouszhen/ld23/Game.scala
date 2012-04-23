@@ -47,7 +47,7 @@ class Game extends Canvas with Runnable {
 
   private[this] val input = new InputHandler(this)
 
-  private[this] val screen = new Screen(WIDTH, HEIGHT, new SpriteSheet(loadImgResource("/tiles.png")))
+  private[this] val screen = new Screen(WIDTH, HEIGHT, new SpriteSheet(loadImgResource("tiles.png")))
 
   val world = new World()
 
