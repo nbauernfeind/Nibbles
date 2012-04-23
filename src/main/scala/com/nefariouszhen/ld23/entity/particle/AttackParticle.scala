@@ -7,14 +7,9 @@ import com.nefariouszhen.ld23.gen.Direction._
 
 class AttackParticle(mob: Mob, world: World, _r: Int, d: Direction) extends Entity(world) {
   x = mob.x - mob.xr
-  y = mob.y// - mob.yr
+  y = mob.y
 
-  d match {
-    case NORTH => y -= 2*mob.yr
-    case SOUTH => //y += 2*mob.yr
-    case EAST => //x += mob.xr
-    case WEST => //x -= mob.xr
-  }
+  if (d == NORTH) y -= 2 * mob.yr
 
   var time = 0
   var r = _r
@@ -23,15 +18,17 @@ class AttackParticle(mob: Mob, world: World, _r: Int, d: Direction) extends Enti
     super.tick()
 
     time += 1
-    if (time % 2 != 0) return
 
-    r -= 1
-    if (r < 0) {
+    if (r <= 0) {
       remove()
     } else {
-      val np = Point(x, y).move(d)
-      x = np.x
-      y = np.y
+      val nd = r / math.max(1,(10 - time))
+      for (i <- 0 until nd) {
+        val np = Point(x, y).move(d)
+        r -= 1
+        x = np.x
+        y = np.y
+      }
     }
   }
 
