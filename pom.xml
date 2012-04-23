@@ -2,14 +2,22 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.nefariouszhen.ld23</groupId>
-    <artifactId>ld23</artifactId>
+    <artifactId>Nibbles</artifactId>
     <version>0.1-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
+    <name>Nibbles</name>
+
     <properties>
         <scala.version>2.9.2</scala.version>
     </properties>
+
+    <scm>
+        <url>https://github.com/nbauernfeind/Nibbles</url>
+        <connection>scm:git:git@github.com:nbauernfeind/Nibbles.git</connection>
+        <developerConnection>scm:git:git@github.com:nbauernfeind/Nibbles.git</developerConnection>
+    </scm>
 
     <dependencies>
         <!-- Scala -->
@@ -71,4 +79,38 @@
             </plugins>
         </pluginManagement>
     </build>
+
+    <profiles>
+        <profile>
+            <id>githubUpload</id>
+            <activation>
+                <property>
+                    <name>github.downloads</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.github</groupId>
+                        <artifactId>downloads-maven-plugin</artifactId>
+                        <version>0.4</version>
+                        <configuration>
+                            <description>${project.version} release of ${project.name}</description>
+                            <override>false</override>
+                            <includeAttached>true</includeAttached>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>upload</goal>
+                                </goals>
+                                <phase>release</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
