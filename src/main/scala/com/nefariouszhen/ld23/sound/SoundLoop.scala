@@ -10,9 +10,9 @@ trait SoundLoop {
 }
 
 object SoundLoop {
-  val BG_LOOP: SoundLoop = new SoundLoopImpl("ld_bg_loop.mp3")
-  val BG_LOOP2: SoundLoop = new SoundLoopImpl("deep bass.mp3")
-  val BG_LOOP3: SoundLoop = new SoundLoopImpl("ld23-lp3.mp3")
+  val BG_LOOP: SoundLoop = new SoundLoopImpl("/ld_bg_loop.mp3")
+  val BG_LOOP2: SoundLoop = new SoundLoopImpl("/deep bass.mp3")
+  val BG_LOOP3: SoundLoop = new SoundLoopImpl("/ld23-lp3.mp3")
 
   val BG = List(BG_LOOP, BG_LOOP2, BG_LOOP3)
 
