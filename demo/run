@@ -1,2 +1,0 @@
-cp ../target/ld23*-jar-with-dependencies.jar ld23.jar
-python -m SimpleHTTPServer 4234

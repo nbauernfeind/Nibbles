@@ -25,6 +25,19 @@
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>javax.sound</groupId>
+            <artifactId>mp3plugin</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.sound</groupId>
+            <artifactId>mp3plugin</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/mp3plugin.jar</systemPath>
+        </dependency>
     </dependencies>
 
     <build>

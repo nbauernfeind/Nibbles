@@ -1,7 +1,8 @@
 package com.nefariouszhen.ld23.sound
 
 import java.util.concurrent.atomic.AtomicBoolean
-import javax.sound.sampled.{Clip, FloatControl, AudioSystem}
+import java.io.BufferedInputStream
+import javax.sound.sampled.{AudioFormat, Clip, FloatControl, AudioSystem}
 
 trait SoundLoop {
   def startPlaying()
@@ -9,11 +10,11 @@ trait SoundLoop {
 }
 
 object SoundLoop {
-  val BG_LOOP: SoundLoop = new SoundLoopImpl("ld_bg_loop.wav")
-  val BG_LOOP2: SoundLoop = new SoundLoopImpl("deep bass.wav")
-  val BG_LOOP3: SoundLoop = new SoundLoopImpl("ld23-lp3.wav")
+  val BG_LOOP: SoundLoop = new SoundLoopImpl("ld_bg_loop.mp3")
+  val BG_LOOP2: SoundLoop = new SoundLoopImpl("deep bass.mp3")
+  val BG_LOOP3: SoundLoop = new SoundLoopImpl("ld23-lp3.mp3")
 
-  val BG = List(BG_LOOP,BG_LOOP2,BG_LOOP3)
+  val BG = List(BG_LOOP, BG_LOOP2, BG_LOOP3)
 
   def stopPlaying() {
     List(BG).flatten.foreach(_.stopPlaying())
@@ -21,9 +22,26 @@ object SoundLoop {
 }
 
 // Start/Transition/Stop Duration (all different) Min/Max probably fixed.
-//private class SoundLoopImpl(name: String, min: Float = -20.0f, max: Float = -05.0f, durationInMs: Int = 2200) extends SoundLoop {
-private class SoundLoopImpl(name: String, min: Float = -20.0f, max: Float = -15.0f, durationInMs: Int = 2200) extends SoundLoop {
-  private[this] val audio = AudioSystem.getAudioInputStream(this.getClass.getResource(name))
+private class SoundLoopImpl(name: String, min: Float = -20.0f, max: Float = -05.0f, durationInMs: Int = 2200) extends SoundLoop {
+  //private class SoundLoopImpl(name: String, min: Float = -15.0f, max: Float = 10.0f, durationInMs: Int = 2200) extends SoundLoop {
+  private[this] val audio = {
+    val resource = this.getClass.getResource(name)
+    val audioStream = AudioSystem.getAudioInputStream(resource)
+    val audioFormat = audioStream.getFormat
+
+    val newFormat = new AudioFormat(
+      AudioFormat.Encoding.PCM_SIGNED,
+      audioFormat.getSampleRate,
+      16,
+      audioFormat.getChannels,
+      audioFormat.getChannels * 2,
+      audioFormat.getSampleRate,
+      false
+    )
+
+    AudioSystem.getAudioInputStream(newFormat, audioStream)
+  }
+
   private[this] val playing = new AtomicBoolean(false)
 
   def startPlaying() {
@@ -60,5 +78,37 @@ private class SoundLoopImpl(name: String, min: Float = -20.0f, max: Float = -15.
 
   def stopPlaying() {
     playing.set(false)
+  }
+
+  /**
+   * If the BufferedInputStream references input that contains an ID3v2
+   * metadata tag, determine the length of the tag and skip past it.
+   *
+   * @param audioStream the BufferedInputStram to read from and possibly
+   *                    skip in
+   * @throws IOException if IO operation fails
+   */
+  private[this] def possiblySkipID3(audioStream: BufferedInputStream) {
+    audioStream.mark(10);
+    val header = Array.ofDim[Byte](10);
+    if (audioStream.read(header) != header.length) {
+      throw new Error("read failed");
+    }
+    audioStream.reset();
+    if (header(0) == 'I' && header(1) == 'D' && header(2) == '3') {
+      // tag length does not include the 10 byte header
+      var toSkip: Long = getTagLength(header) + 10;
+      toSkip -= audioStream.skip(toSkip);
+      while (toSkip > 0) {
+        toSkip -= audioStream.skip(toSkip);
+      }
+    }
+  }
+
+  private[this] def getTagLength(tagHeader: Array[Byte]): Int = {
+    var i = tagHeader(6) << 21;
+    i += tagHeader(7) << 14;
+    i += tagHeader(8) << 7;
+    i + tagHeader(9);
   }
 }
